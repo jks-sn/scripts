@@ -1,0 +1,44 @@
+{
+  "pg_source_dir": "/home/jks/postgres",
+  "pg_bin_dir": "/usr/local/pgsql/bin",
+  "schema_name": "replication",
+  "table_name": "table1",
+  "clusters": [
+    {
+      "name": "master",
+      "data_dir": "/usr/local/pgsql/data2",
+      "port": 5432,
+      "host": "localhost",
+      "conn_params": {
+        "port": 5432,
+        "dbname": "postgres",
+        "user": "postgres",
+        "password": ""
+      }
+    },
+    {
+      "name": "replica1",
+      "data_dir": "/usr/local/pgsql/data3",
+      "port": 5433,
+      "conn_params": {
+        "host": "localhost",
+        "dbname": "postgres",
+        "port": 5433,
+        "user": "postgres",
+        "password": ""
+      }
+    },
+    {
+      "name": "replica2",
+      "data_dir": "/usr/local/pgsql/data4",
+      "port": 5434,
+      "conn_params": {
+        "host": "localhost",
+        "port": 5434,
+        "dbname": "postgres",
+        "user": "postgres",
+        "password": ""
+      }
+    }
+  ]
+}
