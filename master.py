@@ -1,16 +1,8 @@
+#master.py
 import psycopg2
 import click
 import json
-
-def execute_sql(conn_params, sql):
-    """Выполнение SQL-команды."""
-    try:
-        with psycopg2.connect(**conn_params) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                conn.commit()
-    except Exception as e:
-        click.echo(f"Ошибка при выполнении SQL на Master: {e}")
+from db_utils import execute_sql
 
 def setup_master():
     """Настройка Master 1."""
@@ -21,21 +13,20 @@ def setup_master():
     table_name = config['table_name']
     clusters = {cluster['name']: cluster for cluster in config['clusters']}
 
+    server_name = clusters['master']['name']
     master_conn_params = clusters['master']['conn_params']
     master_publication = "master_publication"
 
     # Развертывание схемы и таблицы
     click.echo("Развертывание схемы и таблицы на Master...")
-    execute_sql(master_conn_params, f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;")
-    execute_sql(master_conn_params, f"CREATE SCHEMA {schema_name};")
+    execute_sql(master_conn_params, f"CREATE SCHEMA {schema_name};", server_name)
     execute_sql(master_conn_params, f"""
         CREATE TABLE {schema_name}.{table_name} (
             id SERIAL PRIMARY KEY,
             data TEXT
         );
-    """)
+    """, server_name)
 
     # Создание публикации
     click.echo("Создание публикации на Master...")
-    execute_sql(master_conn_params, f"DROP PUBLICATION IF EXISTS {master_publication};")
-    execute_sql(master_conn_params, f"CREATE PUBLICATION {master_publication} FOR ALL TABLES IN SCHEMA {schema_name};")
+    execute_sql(master_conn_params, f"CREATE PUBLICATION {master_publication} FOR TABLES IN SCHEMA {schema_name};", server_name)

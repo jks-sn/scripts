@@ -1,3 +1,4 @@
+#tests.py
 import psycopg2
 import click
 import json

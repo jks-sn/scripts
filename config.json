@@ -1,5 +1,5 @@
 {
-  "pg_source_dir": "/home/jks/postgres",
+  "pg_source_dir": "/home/jks/postgresql_16",
   "pg_bin_dir": "/usr/local/pgsql/bin",
   "schema_name": "replication",
   "table_name": "table1",
@@ -8,10 +8,10 @@
       "name": "master",
       "data_dir": "/usr/local/pgsql/data2",
       "port": 5432,
-      "host": "localhost",
       "conn_params": {
-        "port": 5432,
+        "host": "localhost",
         "dbname": "postgres",
+        "port": 5432,
         "user": "postgres",
         "password": ""
       }

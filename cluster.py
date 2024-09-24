@@ -1,8 +1,18 @@
+#cluster.py
 import subprocess
 import os
+import sys
 import click
 import json
 
+def run_as_postgres(command):
+    """Запуск команды от имени пользователя postgres"""
+    try:
+        subprocess.run(['sudo', '-u', 'postgres', 'bash', '-c', ' '.join(command)], check=True)
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Ошибка при выполнении команды от имени postgres: {e}")
+        sys.exit(1)
+        
 def init_clusters():
     """Функция для инициализации кластеров."""
     with open('config.json') as f:
@@ -18,12 +28,12 @@ def init_clusters():
         # Удаление предыдущих данных (если необходимо)
         if os.path.exists(data_dir):
             click.echo(f"Удаление предыдущих данных кластера '{cluster_name}'...")
-            subprocess.run(['rm', '-rf', data_dir], check=True)
-
+            run_as_postgres([f'rm -rf {data_dir}/*'])
+                        
         click.echo(f"Инициализация кластера '{cluster_name}'...")
         initdb_path = os.path.join(pg_bin_dir, 'initdb')
-        subprocess.run([initdb_path, '-D', data_dir], check=True)
-
+        run_as_postgres([initdb_path, '-D', data_dir])
+        
         # Настройка параметров в postgresql.conf
         conf_path = os.path.join(data_dir, 'postgresql.conf')
         with open(conf_path, 'a') as conf_file:
@@ -55,8 +65,8 @@ def start_clusters():
 
         click.echo(f"Запуск кластера '{cluster_name}'...")
         pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-        subprocess.run([pg_ctl_path, '-D', data_dir, 'start'], check=True)
-
+        run_as_postgres([pg_ctl_path, '-D', data_dir, 'start'])
+        
 def stop_clusters():
     """Функция для остановки кластеров."""
     with open('config.json') as f:
@@ -70,4 +80,4 @@ def stop_clusters():
 
         click.echo(f"Остановка кластера '{cluster_name}'...")
         pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-        subprocess.run([pg_ctl_path, '-D', data_dir, 'stop', '-m', 'fast'], check=True)
+        run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop'])

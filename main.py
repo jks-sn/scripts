@@ -1,3 +1,5 @@
+#main.py
+import json
 import click
 from build import build_postgresql
 from cluster import init_clusters, start_clusters, stop_clusters
@@ -5,16 +7,24 @@ from master import setup_master
 from replica1 import setup_replica1
 from replica2 import setup_replica2
 from tests import run_tests
+from db_utils import clean_replication_setup
 
 @click.group()
 def cli():
-    """CLI-приложение для автоматизации сборки и тестирования PostgreSQL."""
+    """CLI-приложение для автоматизации сборки, настройки и тестирования PostgreSQL."""
     pass
 
 @cli.command()
-def build():
+def clean():
+    """Очистка подписок, публикаций и схем на всех серверах."""
+    clean_replication_setup()
+
+
+@cli.command()
+@click.option('--clean', is_flag=True, help='Выполнить make clean перед сборкой')
+def build(clean):
     """Сборка и установка PostgreSQL."""
-    build_postgresql()
+    build_postgresql(clean)
 
 @cli.command()
 def init():
@@ -48,7 +58,7 @@ def replica2():
 
 @cli.command()
 def test():
-    """Выполнение тестовых сценариев."""
+    """Выполнение тестов."""
     run_tests()
 
 if __name__ == '__main__':

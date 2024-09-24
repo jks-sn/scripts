@@ -1,16 +1,8 @@
+#replica1.py
 import psycopg2
 import click
 import json
-
-def execute_sql(conn_params, sql):
-    """Выполнение SQL-команды."""
-    try:
-        with psycopg2.connect(**conn_params) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                conn.commit()
-    except Exception as e:
-        click.echo(f"Ошибка при выполнении SQL на Replica 1: {e}")
+from db_utils import execute_sql
 
 def setup_replica1():
     """Настройка Replica 1."""
@@ -21,6 +13,7 @@ def setup_replica1():
     table_name = config['table_name']
     clusters = {cluster['name']: cluster for cluster in config['clusters']}
 
+    server_name = clusters['replica1']['name']
     replica1_conn_params = clusters['replica1']['conn_params']
     master_conn_params = clusters['master']['conn_params']
     replica1_publication = "replica1_publication"
@@ -29,26 +22,23 @@ def setup_replica1():
 
     # Развертывание схемы и таблицы
     click.echo("Развертывание схемы и таблицы на Replica 1...")
-    execute_sql(replica1_conn_params, f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;")
-    execute_sql(replica1_conn_params, f"CREATE SCHEMA {schema_name};")
+    execute_sql(replica1_conn_params, f"CREATE SCHEMA IF NOT EXISTS {schema_name};", server_name)
     execute_sql(replica1_conn_params, f"""
-        CREATE TABLE {schema_name}.{table_name} (
+        CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (
             id SERIAL PRIMARY KEY,
             data TEXT
         );
-    """)
+    """, server_name)
 
     # Подписка на Master
     click.echo("Создание подписки на Master...")
-    execute_sql(replica1_conn_params, f"DROP SUBSCRIPTION IF EXISTS {replica1_subscription};")
     execute_sql(replica1_conn_params, f"""
         CREATE SUBSCRIPTION {replica1_subscription}
         CONNECTION 'host=localhost port={clusters["master"]["port"]} dbname=postgres user=postgres'
         PUBLICATION {master_publication}
         WITH (copy_data = true);
-    """)
+    """, server_name, autocommit=True)
 
     # Создание публикации
     click.echo("Создание публикации на Replica 1...")
-    execute_sql(replica1_conn_params, f"DROP PUBLICATION IF EXISTS {replica1_publication};")
-    execute_sql(replica1_conn_params, f"CREATE PUBLICATION {replica1_publication} FOR ALL TABLES IN SCHEMA {schema_name};")
+    execute_sql(replica1_conn_params, f"CREATE PUBLICATION {replica1_publication} FOR TABLES IN SCHEMA {schema_name};", server_name)
