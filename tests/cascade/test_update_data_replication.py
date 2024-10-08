@@ -31,7 +31,7 @@ class TestUpdateDataReplication(BaseTest):
         execute_sql(master['conn_params'], sql=update_query, server_name=master['name'])
 
         # Ожидание репликации
-        time.sleep(5)
+        time.sleep(2)
 
         # Проверка обновленных данных на replica2
         select_query = f"""

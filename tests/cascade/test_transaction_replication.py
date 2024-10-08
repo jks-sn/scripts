@@ -59,7 +59,7 @@ class TestTransactionReplication(BaseTest):
             conn.close()
 
         # Ожидание репликации
-        time.sleep(5)
+        time.sleep(2)
 
         # Проверка данных на replica2
         select_query = f"""

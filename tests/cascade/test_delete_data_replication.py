@@ -30,7 +30,7 @@ class TestDeleteDataReplication(BaseTest):
         execute_sql(master['conn_params'], delete_query, server_name=master['name'])
 
         # Ожидание репликации
-        time.sleep(5)
+        time.sleep(2)
 
         # Проверка отсутствия данных на replica2
         select_query = f"""

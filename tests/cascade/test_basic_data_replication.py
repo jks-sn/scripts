@@ -25,7 +25,7 @@ class TestBasicDataReplication(BaseTest):
         execute_sql(conn_params=master['conn_params'], sql=insert_query, server_name=master['name'])
 
         # Ожидание репликации
-        time.sleep(5)
+        time.sleep(2)
 
         # Проверка данных на replica2
         select_query = f"""
