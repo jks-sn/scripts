@@ -1,13 +1,16 @@
 #main.py
-import json
+
+import os
+import sys
+import unittest
 import click
-from build import build_postgresql
-from cluster import init_clusters, start_clusters, stop_clusters
-from master import setup_master
-from replica1 import setup_replica1
-from replica2 import setup_replica2
-from tests import run_tests
-from db_utils import clean_replication_setup
+from commands.build import build_postgresql
+from commands.cluster import init_clusters, start_clusters, stop_clusters
+from commands.master import setup_master
+from commands.replica1 import setup_replica1
+from commands.replica2 import setup_replica2
+from commands.replication import setup_replication
+from commands.clean_replication import clean_replication
 
 @click.group()
 def cli():
@@ -17,7 +20,7 @@ def cli():
 @cli.command()
 def clean():
     """Очистка подписок, публикаций и схем на всех серверах."""
-    clean_replication_setup()
+    clean_replication()
 
 
 @cli.command()
@@ -57,9 +60,19 @@ def replica2():
     setup_replica2()
 
 @cli.command()
-def test():
-    """Выполнение тестов."""
-    run_tests()
+def create():
+    """Полная настройка репликации."""
+    setup_replication()
+
+@cli.command()
+def tests():
+    """Запуск тестов."""
+    click.echo("Запуск тестов...")
+    # Добавляем путь к директории tests в sys.path
+    tests_dir = os.path.join(os.path.dirname(__file__), 'tests')
+    sys.path.append(tests_dir)
+    # Запускаем тесты
+    unittest.main(module=None, argv=[''], exit=False)
 
 if __name__ == '__main__':
     cli()
