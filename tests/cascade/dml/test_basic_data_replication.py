@@ -1,14 +1,14 @@
-# tests/cascade/test_basic_data_replication.py
+# tests/cascade/dml/test_basic_data_replication.py
 
 import unittest
 import time
 import click
 from tests.base_test import BaseTest
 from utils.execute import execute_sql
-from utils.config_loader import get_clusters_dict
+from tests.test_tags import dml_test
 
 class TestBasicDataReplication(BaseTest):
-
+    @dml_test
     def test_data_replication(self):
         """Тест проверки репликации данных от мастера до replica2."""
         master = self.clusters['master']

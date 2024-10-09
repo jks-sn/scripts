@@ -1,12 +1,14 @@
-# tests/cascade/test_transaction_replication.py
+# tests/cascade/dml/test_transaction_replication.py
 
 from tests.base_test import BaseTest
 import time
 import click
-from utils.execute import execute_sql
 import psycopg2
+from utils.execute import execute_sql
+from tests.test_tags import dml_test
 
 class TestTransactionReplication(BaseTest):
+    @dml_test
     def test_transaction_replication(self):
         """Тест репликации транзакции с несколькими операциями до replica2."""
         master = self.clusters['master']

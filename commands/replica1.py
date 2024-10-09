@@ -8,7 +8,7 @@ from utils.config_loader import get_clusters_dict
 from utils.repliaction_utils import create_schema, create_table, create_publication, create_subscription
 from utils.log_handler import logger
 
-def setup_replica1():
+def setup_replica1(ddl=False):
     """Настройка первой реплики для логической репликации."""
 
     try:
@@ -31,7 +31,7 @@ def setup_replica1():
         create_subscription(conn_params=replica1['conn_params'], subscription_name=replica1_subscription,connection_info=master_subscription_info, publication_name=master_publication, server_name=replica1['name'])
 
         logger.debug("Создание публикации на Replica 1...")
-        create_publication(conn_params=replica1['conn_params'], publication_name=replica1_publication, schema_name=replica1['replication_schema'], server_name=replica1['name'])
+        create_publication(conn_params=replica1['conn_params'], publication_name=replica1_publication, schema_name=replica1['replication_schema'], server_name=replica1['name'], ddl=ddl)
         logger.debug("Replica 1 настроена успешно.")
 
     except Exception as e:

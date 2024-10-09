@@ -24,9 +24,15 @@ def drop_table(conn_params, schema_name, table_name, server_name):
     execute_sql(conn_params, f"DROP TABLE IF EXISTS {schema_name}.{table_name} CASCADE;", server_name=server_name)
 
 
-def create_publication(conn_params, publication_name, schema_name, server_name):
+def create_publication(conn_params, publication_name, schema_name, server_name, ddl = False):
     """Создает публикацию для указанной схемы."""
-    execute_sql(conn_params, f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name};", server_name=server_name)
+    # Создание публикации
+    if ddl:
+        create_publication_query = f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name} WITH (ddl = 'table');"
+    else:
+        create_publication_query = f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name};"
+
+    execute_sql(conn_params,sql=create_publication_query, server_name=server_name)
 
 def drop_publication(conn_params, publication_name, server_name):
     """Удаляет публикацию."""

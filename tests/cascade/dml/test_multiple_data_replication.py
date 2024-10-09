@@ -1,10 +1,13 @@
-# tests/cascade/test_multiple_data_replication.py
+# tests/cascade/dml/test_multiple_data_replication.py
 
 from tests.base_test import BaseTest
 import time
 import click
 from utils.execute import execute_sql
+from tests.test_tags import dml_test
+
 class TestMultipleDataReplication(BaseTest):
+    @dml_test
     def test_multiple_data_replication(self):
         """Тест множественной вставки данных и их репликации до replica2."""
         master = self.clusters['master']

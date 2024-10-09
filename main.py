@@ -45,14 +45,16 @@ def stop():
     stop_clusters()
 
 @cli.command()
-def master():
-    """Настройка Master 1."""
-    setup_master()
+@click.option('--ddl', is_flag=True, help='Включить DDL репликацию в публикации')
+def master(ddl):
+    """Настройка Master."""
+    setup_master(ddl=ddl)
 
 @cli.command()
-def replica1():
+@click.option('--ddl', is_flag=True, help='Включить DDL репликацию в публикации')
+def replica1(ddl):
     """Настройка Replica 1."""
-    setup_replica1()
+    setup_replica1(ddl=ddl)
 
 @cli.command()
 def replica2():
@@ -60,19 +62,46 @@ def replica2():
     setup_replica2()
 
 @cli.command()
-def create():
+@click.option('--ddl', is_flag=True, help='Включить DDL репликацию в публикации')
+def create(ddl):
     """Полная настройка репликации."""
-    setup_replication()
+    setup_replication(ddl=ddl)
+
+def iterate_tests(suite):
+    """Рекурсивно обходит все тесты в TestSuite."""
+    for test in suite:
+        if isinstance(test, unittest.TestCase):
+            yield test
+        elif isinstance(test, unittest.TestSuite):
+            yield from iterate_tests(test)
+        else:
+            # Неожиданный тип объекта
+            pass
 
 @cli.command()
-def tests():
+@click.option('--tags', '-t', multiple=True, help="Теги тестов для запуска (dml, ddl)")
+def tests(tags):
     """Запуск тестов."""
     click.echo("Запуск тестов...")
-    # Добавляем путь к директории tests в sys.path
-    tests_dir = os.path.join(os.path.dirname(__file__), 'tests')
-    sys.path.append(tests_dir)
+    loader = unittest.TestLoader()
+    tests = loader.discover('tests')
+
+    if tags:
+        # Фильтруем тесты по тегам
+        filtered_tests = unittest.TestSuite()
+        for test in iterate_tests(tests):
+            test_method = getattr(test, test._testMethodName)
+            test_tags = getattr(test_method, 'tags', [])
+            if any(tag in test_tags for tag in tags):
+                filtered_tests.addTest(test)
+        tests = filtered_tests
+
+    click.echo(f"Найдено тестов: {tests.countTestCases()}")
     # Запускаем тесты
-    unittest.main(module=None, argv=[''], exit=False)
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(tests)
+    sys.exit(0 if result.wasSuccessful() else 1)
+
 
 if __name__ == '__main__':
     cli()

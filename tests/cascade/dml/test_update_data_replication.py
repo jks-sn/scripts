@@ -1,11 +1,13 @@
-# tests/cascade/test_update_data_replication.py
+# tests/cascade/dml/test_update_data_replication.py
 
 from tests.base_test import BaseTest
 import time
 import click
 from utils.execute import execute_sql
+from tests.test_tags import dml_test
 
 class TestUpdateDataReplication(BaseTest):
+    @dml_test
     def test_update_data_replication(self):
         """Тест обновления данных и их репликации до replica2."""
         master = self.clusters['master']

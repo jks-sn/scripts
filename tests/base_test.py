@@ -24,7 +24,13 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         """Настройка перед каждым тестом."""
         logger.debug("Настройка репликации перед тестом...")
-        setup_replication()
+
+        test_method = getattr(self, self._testMethodName)
+        test_tags = getattr(test_method, 'tags', [])
+        ddl_required = 'ddl' in test_tags
+
+        setup_replication(ddl=ddl_required)
+        logger.debug(f"Репликация настроена с DDL: {ddl_required}")
         pass
 
     def tearDown(self):

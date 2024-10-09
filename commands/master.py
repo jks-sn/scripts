@@ -8,7 +8,7 @@ from utils.config_loader import get_clusters_dict
 from utils.repliaction_utils import create_schema, create_table, create_publication
 from utils.log_handler import logger
 
-def setup_master():
+def setup_master(ddl=False):
     """Настройка мастера для логической репликации."""
     try:
         clusters = get_clusters_dict()
@@ -21,7 +21,7 @@ def setup_master():
         create_table(conn_params=master['conn_params'], schema_name= master['replication_schema'], table_name= master['replication_table'], server_name=master['name'])
 
         logger.debug("Создание публикации на Master...")
-        create_publication(conn_params=master['conn_params'], publication_name=master_publication, schema_name= master['replication_schema'], server_name=master['name'])
+        create_publication(conn_params=master['conn_params'], publication_name=master_publication, schema_name= master['replication_schema'], server_name=master['name'], ddl=ddl)
         logger.debug("Мастер настроен успешно.")
     except Exception as e:
         logger.error(f"Ошибка при настройке мастера: {e}")
