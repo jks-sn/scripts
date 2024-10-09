@@ -28,10 +28,13 @@ def execute_sql(conn_params, sql, server_name, autocommit=False, fetch=False):
         logger.error(f"Ошибка при выполнении SQL на сервере {server_name}: {e}")
         return None
 
-def run_as_postgres(command):
+def run_as_postgres(command, drop_stdout=True):
     """Запуск команды от имени пользователя postgres"""
     try:
-        subprocess.run(['sudo', '-u', 'postgres', 'bash', '-c', ' '.join(command)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        if(drop_stdout):
+            subprocess.run(['sudo', '-u', 'postgres', 'bash', '-c', ' '.join(command)], check=True)
+        else:
+            subprocess.run(['sudo', '-u', 'postgres', 'bash', '-c', ' '.join(command)], check=True)
     except subprocess.CalledProcessError as e:
         click.echo(f"Ошибка при выполнении команды от имени postgres: {e}")
         logger.error(str(e))

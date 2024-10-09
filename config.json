@@ -1,5 +1,5 @@
 {
-  "pg_source_dir": "/home/jks/postgresql_16",
+  "pg_source_dir": "/home/jks/postgres",
   "pg_bin_dir": "/usr/local/pgsql/bin",
   "clusters": [
     {

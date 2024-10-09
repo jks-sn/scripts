@@ -19,19 +19,20 @@ def build_postgresql(clean):
             click.echo(f"Путь к исходникам PostgreSQL не найден: {pg_source_dir}")
             sys.exit(1)
 
-        os.chdir(pg_source_dir)
-
         if clean:
             logger.debug("Очистка предыдущей сборки...")
-            subprocess.run(['make', 'clean'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            subprocess.run(['make', 'clean'], cwd=pg_source_dir, check=True,  stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-        logger.debug("Очистка предыдущей сборки...")
-        subprocess.run(['make'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        logger.debug("Выполняется 'configure'...")
+        subprocess.run(['./configure'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-        logger.debug("Очистка предыдущей сборки...")
-        subprocess.run(['make', 'install'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        logger.debug("Выполняется 'make'...")
+        subprocess.run(['make'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
 
-        logger.debug("Очистка предыдущей сборки...")
+        logger.debug("Выполняется 'make install'...")
+        subprocess.run(['make', 'install'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+        logger.debug("PostgreSQL успешно собран и установлен....")
     except subprocess.CalledProcessError as e:
         logger.error(f"Ошибка при выполнении команды: {e}")
         logger.debug("Подробности ошибки смотрите в 'build.log'")

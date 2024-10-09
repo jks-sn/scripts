@@ -14,7 +14,7 @@ def get_log_file(log_filename):
 
 def setup_logger():
     """Настраивает логгер для записи в файл."""
-    log_filename = time.strftime("log_%Y%m%d_%H%M%S.log")
+    log_filename = time.strftime("logs/log_%Y%m%d_%H%M%S.log")
 
     logger = logging.getLogger(log_filename)
     logger.setLevel(logging.DEBUG)

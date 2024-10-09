@@ -62,7 +62,7 @@ def start_clusters():
 
             logger.debug(f"Запуск кластера '{cluster_name}'...")
             pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-            run_as_postgres([pg_ctl_path, '-D', data_dir, 'start'])
+            run_as_postgres([pg_ctl_path, '-D', data_dir, 'start'], drop_stdout=False)
 
         logger.debug("Все кластеры успешно запущены.")
     except Exception as e:
@@ -82,7 +82,7 @@ def stop_clusters():
 
             logger.debug(f"Остановка кластера '{cluster_name}'...")
             pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-            run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop'])
+            run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop'], drop_stdout=False)
 
         logger.debug("Все кластеры успешно остановлены.")
     except Exception as e:
