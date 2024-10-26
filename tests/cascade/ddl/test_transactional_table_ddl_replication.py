@@ -5,10 +5,10 @@ import time
 import click
 import psycopg2
 from utils.execute import execute_sql
-from tests.test_tags import ddl_test
+from tests.test_tags import cascade_ddl_test
 
 class TestTransactionalTableDDLReplication(BaseTest):
-    @ddl_test
+    @cascade_ddl_test
     def test_transactional_table_ddl_replication(self):
         """Тест репликации транзакционных DDL операций с таблицами."""
         master = self.clusters['master']

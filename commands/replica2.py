@@ -16,8 +16,6 @@ def setup_replica2():
         replica1 = config['replica1']
         replica2 = config['replica2']
 
-        replica2_subscription = "replica2_subscription"
-        replica1_publication = "replica1_publication"
         replica1_subscription_info = f'host=localhost port={replica1["port"]} dbname=postgres user=postgres'
         # Развертывание схемы и таблицы
         logger.debug("Развертывание схемы и таблицы на Replica 2...")
@@ -26,7 +24,7 @@ def setup_replica2():
 
         # Подписка на Replica 1
         logger.debug("Создание подписки на Replica 1...")
-        create_subscription(conn_params=replica2['conn_params'], subscription_name=replica2_subscription, connection_info=replica1_subscription_info, publication_name=replica1_publication, server_name=replica2['name'])
+        create_subscription(conn_params=replica2['conn_params'], subscription_name=f"sub_{replica2['name']}", connection_info=replica1_subscription_info, publication_name=f"pub_{replica1['name']}", server_name=replica2['name'])
 
         logger.debug("Replica 2 настроена успешно.")
 

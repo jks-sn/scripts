@@ -4,10 +4,10 @@ from tests.base_test import BaseTest
 import time
 import click
 from utils.execute import execute_sql
-from tests.test_tags import ddl_test
+from tests.test_tags import cascade_ddl_test
 
 class TestCreateTableReplication(BaseTest):
-    @ddl_test
+    @cascade_ddl_test
     def test_create_table_replication(self):
         """Тест репликации создания таблицы в реплицируемой схеме."""
         master = self.clusters['master']

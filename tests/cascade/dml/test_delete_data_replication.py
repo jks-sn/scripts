@@ -4,10 +4,10 @@ from tests.base_test import BaseTest
 import time
 import click
 from utils.execute import execute_sql
-from tests.test_tags import dml_test
+from tests.test_tags import cascade_dml_test
 
 class TestDeleteDataReplication(BaseTest):
-    @dml_test
+    @cascade_dml_test
     def test_delete_data_replication(self):
         """Тест удаления данных и их репликации до replica2."""
         master = self.clusters['master']

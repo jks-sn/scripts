@@ -4,10 +4,10 @@ from tests.base_test import BaseTest
 import time
 import click
 from utils.execute import execute_sql
-from tests.test_tags import ddl_test
+from tests.test_tags import cascade_ddl_test
 
 class TestDropTableReplication(BaseTest):
-    @ddl_test
+    @cascade_ddl_test
     def test_drop_table_replication(self):
         """Тест репликации удаления таблицы."""
         master = self.clusters['master']

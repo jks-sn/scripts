@@ -3,10 +3,10 @@
 from tests.base_test import BaseTest
 import time
 from utils.execute import execute_sql
-from tests.test_tags import ddl_test
+from tests.test_tags import cascade_ddl_test
 
 class TestTableCreationConflict(BaseTest):
-    @ddl_test
+    @cascade_ddl_test
     def test_table_creation_conflict(self):
         """Тест обработки конфликта при создании таблицы."""
         master = self.clusters['master']

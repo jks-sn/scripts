@@ -5,10 +5,10 @@ import time
 import click
 from tests.base_test import BaseTest
 from utils.execute import execute_sql
-from tests.test_tags import dml_test
+from tests.test_tags import cascade_dml_test
 
 class TestBasicDataReplication(BaseTest):
-    @dml_test
+    @cascade_dml_test
     def test_data_replication(self):
         """Тест проверки репликации данных от мастера до replica2."""
         master = self.clusters['master']

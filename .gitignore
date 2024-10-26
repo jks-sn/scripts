@@ -1,0 +1,40 @@
+# Игнорирование кэшированных файлов Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Игнорирование логов
+logs/
+*.log
+
+# Игнорирование виртуальных окружений
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Игнорирование файлов сборки и дистрибутива
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Игнорирование файлов редакторов и IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Игнорирование файлов OS
+.DS_Store
+Thumbs.db
+
+# Игнорирование файлов Jupyter Notebook
+*.ipynb_checkpoints
+
+# Игнорирование других временных файлов
+*.tmp
+*.bak
+*.swp
+

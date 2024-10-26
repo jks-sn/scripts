@@ -6,10 +6,10 @@ import click
 from utils.execute import execute_sql
 from commands.cluster import start_cluster, stop_cluster
 from utils.log_handler import logger
-from tests.test_tags import dml_test
+from tests.test_tags import cascade_dml_test
 
 class TestReplicationAfterReplicaRestart(BaseTest):
-    @dml_test
+    @cascade_dml_test
     def test_replication_after_replica_restart(self):
         """Тест репликации данных после перезапуска replica2."""
         master = self.clusters['master']

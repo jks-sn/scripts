@@ -21,7 +21,7 @@ def setup_master(ddl=False):
         create_table(conn_params=master['conn_params'], schema_name= master['replication_schema'], table_name= master['replication_table'], server_name=master['name'])
 
         logger.debug("Создание публикации на Master...")
-        create_publication(conn_params=master['conn_params'], publication_name=master_publication, schema_name= master['replication_schema'], server_name=master['name'], ddl=ddl)
+        create_publication(conn_params=master['conn_params'], publication_name=f"pub_{master['name']}", schema_name= master['replication_schema'], server_name=master['name'], ddl=ddl)
         logger.debug("Мастер настроен успешно.")
     except Exception as e:
         logger.error(f"Ошибка при настройке мастера: {e}")

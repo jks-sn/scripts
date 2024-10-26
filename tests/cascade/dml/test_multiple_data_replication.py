@@ -4,10 +4,10 @@ from tests.base_test import BaseTest
 import time
 import click
 from utils.execute import execute_sql
-from tests.test_tags import dml_test
+from tests.test_tags import cascade_dml_test
 
 class TestMultipleDataReplication(BaseTest):
-    @dml_test
+    @cascade_dml_test
     def test_multiple_data_replication(self):
         """Тест множественной вставки данных и их репликации до replica2."""
         master = self.clusters['master']
