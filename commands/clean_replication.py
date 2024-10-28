@@ -19,8 +19,8 @@ def clean_replication():
 
             logger.debug(f"Очистка на сервере {server_name}...")
 
-            execute_sql(conn_params=conn_params, sql=f"DROP SUBSCRIPTION IF EXISTS {server_name}_subscription;", server_name=server_name, autocommit=True)
-            execute_sql(conn_params=conn_params, sql=f"DROP PUBLICATION {server_name}_publication;", server_name=server_name)
+            execute_sql(conn_params=conn_params, sql=f"DROP SUBSCRIPTION IF EXISTS sub_{server_name};", server_name=server_name, autocommit=True)
+            execute_sql(conn_params=conn_params, sql=f"DROP PUBLICATION IF EXISTS pub_{server_name};", server_name=server_name)
             execute_sql(conn_params=conn_params, sql=f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;", server_name=server_name)
 
         logger.debug("Очистка репликации завершена для всех кластеров.")

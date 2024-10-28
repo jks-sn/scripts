@@ -1,5 +1,9 @@
 # tests/test_tags.py
 
+def ddl_test(test_func):
+    """Декоратор для DDL"""
+    test_func.tags = ['ddl']
+    return test_func
 
 def cascade_dml_test(test_func):
     """Декоратор для пометки теста как каскадный логический DML."""

@@ -85,7 +85,6 @@ def tests(tags):
     click.echo("Запуск тестов...")
     loader = unittest.TestLoader()
     tests = loader.discover('tests')
-
     if tags:
         # Фильтруем тесты по тегам
         filtered_tests = unittest.TestSuite()

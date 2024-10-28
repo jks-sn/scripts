@@ -1,5 +1,5 @@
 {
-  "pg_source_dir": "/home/jks/pg16",
+  "pg_source_dir": "/home/jks/pg_16_ddl",
   "pg_bin_dir": "/usr/local/pgsql/bin",
   "clusters": [
     {

@@ -13,7 +13,6 @@ def setup_master(ddl=False):
     try:
         clusters = get_clusters_dict()
         master = clusters['master']
-        master_publication = "master_publication"
 
         # Развертывание схемы и таблицы
         logger.debug(f"Развертывание схемы и таблицы на {master['name']}...")

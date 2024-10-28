@@ -1,5 +1,6 @@
 # utils/replication_utils.py
 
+import psycopg2
 from utils.execute import execute_sql
 from utils.config_loader import load_config
 from utils.log_handler import logger
@@ -46,17 +47,21 @@ def format_option_value(value):
 
 def create_publication(conn_params, publication_name, schema_name, server_name, ddl = False):
     """Создает публикацию для указанной схемы."""
-    # Создание публикации
-    if ddl:
-        create_publication_query = f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name} WITH (ddl = 'table');"
-    else:
-        create_publication_query = f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name};"
+    drop_publication(conn_params, publication_name, server_name)
+    try:
+        # Создание публикации
+        if ddl:
+            create_publication_query = f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name} WITH (ddl = 'table');"
+        else:
+            create_publication_query = f"CREATE PUBLICATION {publication_name} FOR TABLES IN SCHEMA {schema_name};"
 
-    execute_sql(conn_params,sql=create_publication_query, server_name=server_name)
+        execute_sql(conn_params,sql=create_publication_query, server_name=server_name)
+    except psycopg2.errors.DuplicateObject:
+        logger.warning(f"Publication '{publication_name}' already exists on server '{server_name}'. Skipping creation.")
 
 def drop_publication(conn_params, publication_name, server_name):
     """Удаляет публикацию."""
-    execute_sql(conn_params, f"DROP PUBLICATION{publication_name};", server_name=server_name)
+    execute_sql(conn_params, f"DROP PUBLICATION IF EXISTS {publication_name};", server_name=server_name)
 
 def create_subscription(conn_params, subscription_name, connection_info, publication_name, server_name, options=None):
     """
@@ -70,6 +75,7 @@ def create_subscription(conn_params, subscription_name, connection_info, publica
     :param options: Словарь с опциями подписки (например, {'copy_data': 'false', 'synchronous_commit': 'local'}).
     """
     try:
+        drop_subscription(conn_params, subscription_name, server_name)
         # Формируем строку опций для команды WITH, если опции заданы
         if options:
             options_str = ', '.join([f"{key} = {format_option_value(value)}" for key, value in options.items()])

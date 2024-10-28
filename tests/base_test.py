@@ -39,24 +39,3 @@ class BaseTest(unittest.TestCase):
         logger.debug("Очистка репликации после теста...")
         clean_replication()
         pass
-
-    def wait_for_subscription(self, subscription_name, timeout=30):
-        """
-        Ожидает, пока подписка станет активной.
-        """
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            query = f"""
-                SELECT status FROM pg_stat_subscription
-                WHERE subname = '{subscription_name}';
-            """
-            result = execute_sql(
-                self.replica['conn_params'],
-                query,
-                server_name=self.replica['name'],
-                fetch=True
-            )
-            if result and result[0][0] == 'streaming':
-                return
-            time.sleep(1)
-        raise TimeoutError(f"Подписка '{subscription_name}' не стала активной в течение {timeout} секунд.")

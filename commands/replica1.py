@@ -16,8 +16,6 @@ def setup_replica1(ddl=False, logddl_tests=False):
         replica1 = config['replica1']
         master = config['master']
 
-        replica1_subscription = "replica1_subscription"
-        master_publication = "master_publication"
         master_subscription_info = f'host=localhost port={master["port"]} dbname=postgres user=postgres'
 
         logger.debug("Настройка Replica 1...")
