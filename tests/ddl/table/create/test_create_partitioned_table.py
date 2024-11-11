@@ -48,10 +48,7 @@ class TestCreatePartitionedTable(BaseDDLTest):
 
         # Проверка наличия разделенной таблицы и партиций на реплике
         check_partitions_query = f"""
-            SELECT inhrelid::regclass::text AS child, inhparent::regclass::text AS parent
-            FROM pg_inherits
-            WHERE inhparent = '{schema_name}.{partitioned_table}'::regclass
-            ORDER BY child;
+            SELECT inhrelid:test_create_table_with_like_clause
         """
         results = execute_sql(replica['conn_params'], check_partitions_query, server_name=replica['name'], fetch=True)
 

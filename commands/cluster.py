@@ -69,6 +69,26 @@ def start_clusters():
         logger.error(f"Ошибка при запуске кластеров: {e}")
         sys.exit(1)
 
+def status_clusters():
+    """Функция для запуска кластеров."""
+    try:
+        config = load_config()
+        pg_bin_dir = config['pg_bin_dir']
+        clusters = config['clusters']
+
+        for cluster in clusters:
+            data_dir = cluster['data_dir']
+            cluster_name = cluster['name']
+
+            logger.debug(f"Запуск кластера '{cluster_name}'...")
+            pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
+            run_as_postgres([pg_ctl_path, '-D', data_dir, 'status'], drop_stdout=False)
+
+        logger.debug("Все кластеры успешно запущены.")
+    except Exception as e:
+        logger.error(f"Ошибка при запуске кластеров: {e}")
+        sys.exit(1)
+
 def stop_clusters():
     """Функция для остановки кластеров."""
     try:

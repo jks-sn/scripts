@@ -5,12 +5,13 @@ import sys
 import unittest
 import click
 from commands.build import build_postgresql
-from commands.cluster import init_clusters, start_clusters, stop_clusters
+from commands.cluster import init_clusters, start_clusters, status_clusters, stop_clusters
 from commands.master import setup_master
 from commands.replica1 import setup_replica1
 from commands.replica2 import setup_replica2
 from commands.replication import setup_replication
 from commands.clean_replication import clean_replication
+from utils.tesstHandler import TestHandler
 
 @click.group()
 def cli():
@@ -38,6 +39,11 @@ def init():
 def start():
     """Запуск кластеров."""
     start_clusters()
+
+@cli.command()
+def status():
+    """Запуск кластеров."""
+    status_clusters()
 
 @cli.command()
 def stop():
@@ -85,6 +91,7 @@ def tests(tags):
     click.echo("Запуск тестов...")
     loader = unittest.TestLoader()
     tests = loader.discover('tests')
+
     if tags:
         # Фильтруем тесты по тегам
         filtered_tests = unittest.TestSuite()
@@ -96,9 +103,15 @@ def tests(tags):
         tests = filtered_tests
 
     click.echo(f"Найдено тестов: {tests.countTestCases()}")
-    # Запускаем тесты
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(resultclass=TestHandler, verbosity=2)
     result = runner.run(tests)
+
+    print("\nTest Summary:")
+    print(f"Total tests run: {result.testsRun}")
+    print(f"Successes: {len(result.successes)}")
+    print(f"Failures: {len(result.failures_list)}")
+    print(f"Errors: {len(result.errors_list)}")
+    print(f"Skipped: {len(result.skipped_list)}")
     sys.exit(0 if result.wasSuccessful() else 1)
 
 
