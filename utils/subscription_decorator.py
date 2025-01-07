@@ -14,11 +14,9 @@ def subscription_options(options_list):
         def wrapper(self, *args, **kwargs):
             for options in options_list:
                 with self.subTest(subscription_options=options):
-                    # Создаем подписку с текущими опциями
                     connection_info = f'host=localhost port={self.master["port"]} dbname=postgres user=postgres'
                     subscription_name = f"sub_{self.replica['name']}_{test_func.__name__}"
 
-                    # Удаляем подписку, если она уже существует
                     drop_subscription(self.replica['conn_params'], subscription_name, self.replica['name'])
 
                     create_subscription(
@@ -29,13 +27,13 @@ def subscription_options(options_list):
                         server_name=self.replica['name'],
                         options=options
                     )
-                    # Подождем некоторое время для инициации подписки
+
                     self.wait_for_subscription(subscription_name)
-                    # Устанавливаем текущие опции для использования в тесте
+
                     self.current_subscription_options = options
-                    # Выполнение теста
+
                     test_func(self, *args, **kwargs)
-                    # Очистка подписки
+
                     drop_subscription(self.replica['conn_params'], subscription_name, self.replica['name'])
         return wrapper
     return decorator

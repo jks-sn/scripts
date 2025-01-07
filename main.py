@@ -4,74 +4,47 @@ import os
 import sys
 import unittest
 import click
-from commands.build import build_postgresql
-from commands.cluster import init_clusters, start_clusters, status_clusters, stop_clusters
-from commands.master import setup_master
-from commands.replica1 import setup_replica1
-from commands.replica2 import setup_replica2
-from commands.replication import setup_replication
-from commands.clean_replication import clean_replication
+from commands.build import build_postgresql_cmd
+from commands.cluster import (
+    init_cluster_cmd,
+    start_cluster_cmd,
+    status_cluster_cmd,
+    stop_cluster_cmd
+)
+
+from commands.master import setup_master_cmd
+from commands.replica1 import setup_replica1_cmd
+from commands.replica2 import setup_replica2_cmd
+from commands.replication import setup_replication_cmd
+from commands.clean_replication import clean_replication_cmd
 from utils.tesstHandler import TestHandler
 
 @click.group()
-def cli():
-    """CLI-приложение для автоматизации сборки, настройки и тестирования PostgreSQL."""
-    pass
+@click.option(
+    '--implementation',
+    type=click.Choice(['ddl_patch', 'vanilla'], case_sensitive=False),
+    default='vanilla',
+    help='Type of DDL implementation (ddl_patch, vanilla)'
+)
+@click.pass_context
+def cli(ctx, implementation):
+    """CLI tool for automating PostgreSQL build, setup, and testing."""
+    ctx.ensure_object(dict)
+    ctx.obj['IMPLEMENTATION'] = implementation
 
-@cli.command()
-def clean():
-    """Очистка подписок, публикаций и схем на всех серверах."""
-    clean_replication()
+cli.add_command(build_postgresql_cmd)
 
+cli.add_command(init_cluster_cmd)
+cli.add_command(start_cluster_cmd)
+cli.add_command(status_cluster_cmd)
+cli.add_command(stop_cluster_cmd)
 
-@cli.command()
-@click.option('--clean', is_flag=True, help='Выполнить make clean перед сборкой')
-def build(clean):
-    """Сборка и установка PostgreSQL."""
-    build_postgresql(clean)
+cli.add_command(setup_replication_cmd)
+cli.add_command(clean_replication_cmd)
 
-@cli.command()
-def init():
-    """Инициализация кластеров."""
-    init_clusters()
-
-@cli.command()
-def start():
-    """Запуск кластеров."""
-    start_clusters()
-
-@cli.command()
-def status():
-    """Запуск кластеров."""
-    status_clusters()
-
-@cli.command()
-def stop():
-    """Остановка кластеров."""
-    stop_clusters()
-
-@cli.command()
-@click.option('--ddl', is_flag=True, help='Включить DDL репликацию в публикации')
-def master(ddl):
-    """Настройка Master."""
-    setup_master(ddl=ddl)
-
-@cli.command()
-@click.option('--ddl', is_flag=True, help='Включить DDL репликацию в публикации')
-def replica1(ddl):
-    """Настройка Replica 1."""
-    setup_replica1(ddl=ddl)
-
-@cli.command()
-def replica2():
-    """Настройка Replica 2."""
-    setup_replica2()
-
-@cli.command()
-@click.option('--ddl', is_flag=True, help='Включить DDL репликацию в публикации')
-def create(ddl):
-    """Полная настройка репликации."""
-    setup_replication(ddl=ddl)
+cli.add_command(setup_master_cmd)
+cli.add_command(setup_replica1_cmd)
+cli.add_command(setup_replica2_cmd)
 
 def iterate_tests(suite):
     """Рекурсивно обходит все тесты в TestSuite."""
@@ -86,7 +59,7 @@ def iterate_tests(suite):
 
 @cli.command()
 @click.option('--tags', '-t', multiple=True, help="Теги тестов для запуска (dml, ddl)")
-def tests(tags):
+def tests_cmd(tags):
     """Запуск тестов."""
     click.echo("Запуск тестов...")
     loader = unittest.TestLoader()
@@ -114,6 +87,6 @@ def tests(tags):
     print(f"Skipped: {len(result.skipped_list)}")
     sys.exit(0 if result.wasSuccessful() else 1)
 
-
+cli.add_command(tests_cmd)
 if __name__ == '__main__':
-    cli()
+    cli(obj={})

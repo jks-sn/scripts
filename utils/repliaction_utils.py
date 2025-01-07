@@ -76,14 +76,12 @@ def create_subscription(conn_params, subscription_name, connection_info, publica
     """
     try:
         drop_subscription(conn_params, subscription_name, server_name)
-        # Формируем строку опций для команды WITH, если опции заданы
         if options:
             options_str = ', '.join([f"{key} = {format_option_value(value)}" for key, value in options.items()])
             with_clause = f"WITH ({options_str})"
         else:
             with_clause = ""  # Без опций
 
-        # Формирование SQL-запроса для создания подписки
         create_subscription_query = f"""
             CREATE SUBSCRIPTION {subscription_name}
             CONNECTION '{connection_info}'
@@ -99,3 +97,4 @@ def create_subscription(conn_params, subscription_name, connection_info, publica
 def drop_subscription(conn_params, subscription_name, server_name):
     """Удаляет подписку."""
     execute_sql(conn_params, f"DROP SUBSCRIPTION IF EXISTS {subscription_name};", server_name=server_name, autocommit=True)
+    logger.debug(f"Подписка '{subscription_name}' успешно удалена")

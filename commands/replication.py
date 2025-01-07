@@ -1,36 +1,67 @@
 #commands/replication.py
 
+import sys
 import click
 from commands.master import setup_master
 from commands.replica1 import setup_replica1
 from commands.replica2 import setup_replica2
 from utils.log_handler import logger
 
-def setup_replication(ddl=False):
-    """Настройка логической репликации между мастером и репликами."""
+def setup_replication(implementation: str, ddl: bool = False, cascading_replication: bool = False):
+    """
+    Performs a full replication setup:
+    1) Sets up the Master (optionally with DDL replication).
+    2) Sets up Replica 1 (optionally with DDL replication and cascading replication).
+    3) Sets up Replica 2.
+
+    :param implementation: Type of DDL implementation.
+    :param ddl: If True, enable DDL replication in the publication.
+    :param cascading_replication: If True, enable cascading replication.
+    """
     try:
-        logger.debug("Начинается настройка мастера...")
-        setup_master(ddl=ddl)
-        logger.debug("Настройка мастера завершена.")
+        logger.debug("Starting master setup...")
+        setup_master(implementation=implementation, ddl=ddl)
+        logger.debug("Master setup completed.")
     except Exception as e:
-        logger.error(f"Ошибка при настройке мастера: {e}")
-        return
+        logger.error(f"Error during master setup: {e}")
+        raise
 
     try:
-        logger.debug("Начинается настройка Replica 1...")
-        setup_replica1(ddl=ddl)
-        logger.debug("Настройка Replica 1 завершена.")
+        logger.debug("Starting Replica 1 setup...")
+        setup_replica1(implementation=implementation, ddl=ddl, cascading_replication=cascading_replication)
+        logger.debug("Replica 1 setup completed.")
     except Exception as e:
-        logger.error(f"Ошибка при настройке Replica 1: {e}")
-        return
+        logger.error(f"Error during Replica 1 setup: {e}")
+        raise
 
     try:
-        logger.debug("Начинается настройка Replica 2...")
-        setup_replica2()
-        logger.debug("Настройка Replica 2 завершена.")
+        logger.debug("Starting Replica 2 setup...")
+        setup_replica2(implementation=implementation)
+        logger.debug("Replica 2 setup completed.")
     except Exception as e:
-        logger.error(f"Ошибка при настройке Replica 2: {e}")
-        return
+        logger.error(f"Error during Replica 2 setup: {e}")
+        raise
 
-    logger.debug("Настройка репликации завершена.")
+    logger.debug("Replication setup has been completed successfully.")
+    click.echo("Replication setup has been completed successfully.")
+
+@click.command(name="setup-replication")
+@click.option('--ddl', is_flag=True, help='Enable DDL replication in the publication')
+@click.option('--cascading-replication', is_flag=True, help='Enable cascading replication for Replica 1')
+@click.pass_context
+def setup_replication_cmd(ctx, ddl: bool, cascading_replication: bool):
+    """
+    CLI command: Performs a full replication setup (Master, Replica1, and Replica2).
+    """
+    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
+    try:
+        setup_replication(
+            implementation=implementation,
+            ddl=ddl,
+            cascading_replication=cascading_replication
+        )
+        click.secho("Full replication setup is complete.", fg='green')
+    except Exception as e:
+        click.secho(f"Failed to complete replication setup: {e}", fg='red')
+        sys.exit(1)
 

@@ -1,26 +1,56 @@
 #commands/master.py
 
-import psycopg2
+import sys
 import click
-import json
-from utils.execute import execute_sql
-from utils.config_loader import get_clusters_dict
-from utils.repliaction_utils import create_schema, create_table, create_publication
+from factories.ddl_factory import get_ddl_implementation
+from utils.config_loader import load_config
 from utils.log_handler import logger
 
-def setup_master(ddl=False):
-    """Настройка мастера для логической репликации."""
+def setup_master(implementation: str, ddl=False):
+    """
+    Sets up the Master server.
+
+    :param implementation: Type of DDL implementation.
+    :param ddl: If True, enable DDL replication in the publication.
+    """
     try:
-        clusters = get_clusters_dict()
-        master = clusters['master']
+        config = load_config()
 
-        # Развертывание схемы и таблицы
-        logger.debug(f"Развертывание схемы и таблицы на {master['name']}...")
-        create_schema(conn_params=master['conn_params'], schema_name= master['replication_schema'], server_name=master['name'])
-        create_table(conn_params=master['conn_params'], schema_name= master['replication_schema'], table_name= master['replication_table'], server_name=master['name'])
+        master_server = next(c for c in config.clusters if c.name == "master")
+        ddl_master = get_ddl_implementation(
+            db_type="postgresql",
+            implementation_type=implementation,
+            conn_params=master_server.conn_params.model_dump(),
+            server_name=master_server.name)
 
-        logger.debug("Создание публикации на Master...")
-        create_publication(conn_params=master['conn_params'], publication_name=f"pub_{master['name']}", schema_name= master['replication_schema'], server_name=master['name'], ddl=ddl)
-        logger.debug("Мастер настроен успешно.")
+        try:
+            logger.debug(f"Deploying schema and table on {master_server.name}...")
+            ddl_master.create_schema(master_server.replication_schema)
+            ddl_master.create_table(master_server.replication_schema, master_server.replication_table)
+            logger.debug(f"Schema and table deployed on {master_server.name}.")
+        except Exception as e:
+            logger.error(f"Error creating schema or table on {master_server.name}: {e}")
+            sys.exit(1)
+
+        try:
+            logger.debug(f"Creating publication on {master_server.name}...")
+            ddl_master.create_publication(
+                publication_name=f"pub_{master_server.name}",
+                schema_name=master_server.replication_schema,
+                ddl=ddl)
+        except Exception as e:
+            logger.error(f"Error creating publication on {master_server.name}: {e}")
+            sys.exit(1)
+
+        logger.debug("Master setup successfully completed.")
+
     except Exception as e:
-        logger.error(f"Ошибка при настройке мастера: {e}")
+        logger.error(f"Error setting up master: {e}")
+        sys.exit(1)
+
+@click.command(name="master")
+@click.option('--ddl', is_flag=True, help='Enable DDL replication in the publication')
+def setup_master_cmd(ctx, ddl: bool):
+    """Sets up the Master server."""
+    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
+    setup_master(implementation=implementation, ddl=ddl)
