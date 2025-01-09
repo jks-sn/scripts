@@ -1,64 +1,31 @@
 # tests/ddl/table/create/test_alter_table_add_column.py
 
-from commands.table import check_table_exists, get_table_columns
-from tests.base_ddl_test import BaseDDLTest
-from tests.test_tags import ddl_test
-from utils.execute import execute_sql
-from utils.subscription_decorator import subscription_options
+import pytest
 import time
 
-class TestAlterTableAddColumn(BaseDDLTest):
-    @ddl_test
-    @subscription_options([
-        {},
-        {'enabled': False},
-        {'streaming': 'on'},
-        {'copy_data': False},
-        {'synchronous_commit': 'off'},
-        {'streaming': 'on', 'synchronous_commit': 'off'},
-    ])
-    def test_alter_table_add_column(self):
-        """Тестирование добавления колонки через ALTER TABLE."""
-        master = self.master
-        replica = self.replica
+@pytest.mark.ddl
+def test_alter_table_add_column(ddl_session, master_cluster, replica1_cluster):
+    """
+    Testing ALTER TABLE ADD COLUMN.
+    """
+    master_name = master_cluster.name
+    replica1_name = replica1_cluster.name
+    schema_name = master_cluster.replication_schema
+    table_name = "test_add_column"
 
-        schema_name = master['replication_schema']
-        table_name = f'test_add_column_{self.current_subscription_index}'
+    # 1) Create table on master
+    ddl_session.create_table(master_name, schema_name, table_name)
+    time.sleep(1)
 
-        # Создаем таблицу на мастере
-        create_table_query = f"""
-            CREATE TABLE {schema_name}.{table_name} (
-                id SERIAL PRIMARY KEY,
-                data TEXT
-            );
-        """
-        execute_sql(master['conn_params'], create_table_query, server_name=master['name'])
+    # 2) Check table exists on replica1
+    assert ddl_session.table_exists(replica1_name, schema_name, table_name), \
+        "Table was not replicated before adding column."
 
-        time.sleep(1)
+    # 3) Add column
+    ddl_session.add_column(master_name, schema_name, table_name, "new_column", "INTEGER", default_value=0)
+    time.sleep(1)
 
-        # Проверяем, что таблица существует на реплике (если подписка активна)
-        if self.current_subscription_options.get('enabled', True):
-            columns = get_table_columns(replica['conn_params'], schema_name, table_name)
-            self.assertEqual(len(columns), 2, "Таблица не была корректно реплицирована на реплику")
-        else:
-            # Если подписка отключена, таблица не должна существовать на реплике
-            table_exists = check_table_exists(replica['conn_params'], schema_name, table_name)
-            self.assertFalse(table_exists, "Таблица не должна существовать на реплике при отключенной подписке")
-            print(f"Подписка отключена, тест пропущен для опций {self.current_subscription_options}.")
-            return
-
-        # Добавляем новую колонку на мастере
-        alter_table_query = f"""
-            ALTER TABLE {schema_name}.{table_name}
-            ADD COLUMN new_column INTEGER DEFAULT 0;
-        """
-        execute_sql(master['conn_params'], alter_table_query, server_name=master['name'])
-
-        time.sleep(1)
-
-        # Проверяем, что новая колонка появилась на реплике
-        columns = get_table_columns(replica['conn_params'], schema_name, table_name)
-        column_names = [col['column_name'] for col in columns]
-        self.assertIn('new_column', column_names, "Новая колонка не была реплицирована на реплику")
-
-        print(f"Добавление колонки успешно реплицировано с опциями {self.current_subscription_options}.")
+    # 4) Check columns on replica1
+    columns = ddl_session.get_table_columns(replica1_name, schema_name, table_name)
+    col_names = [col["column_name"] for col in columns]
+    assert "new_column" in col_names, "New column was not replicated to replica1"

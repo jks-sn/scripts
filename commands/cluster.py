@@ -9,26 +9,27 @@ from utils.execute import run_as_postgres
 from utils.config_loader import load_config
 from utils.log_handler import logger
 
-def init_cluster():
+def init_cluster(implementation: str = "vanilla"):
     """
     Initializes PostgreSQL clusters by running initdb and writing config to postgresql.conf.
     """
     try:
         config = load_config()
         pg_bin_dir = config.pg_bin_dir
+        pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
         for cluster in clusters:
             cluster_name = cluster.name
-            data_dir = cluster.data_dir
+            data_dir = os.path.join(pg_cluster_dir, cluster_name)
             port = cluster.port
 
             if os.path.exists(data_dir):
-                logger.debug(f"Removing previous data in cluster '{cluster_name}'...")
+                logger.debug(f"Removing old data dir '{data_dir}' for cluster '{cluster_name}'...")
                 run_as_postgres([f'rm -rf {data_dir}/*'])
 
-            logger.debug(f"Initializing cluster '{cluster_name}'...")
             initdb_path = os.path.join(pg_bin_dir, 'initdb')
+            logger.debug(f"Initializing cluster '{cluster_name}'...")
             run_as_postgres([initdb_path, '-D', data_dir])
 
             conf_path = os.path.join(data_dir, 'postgresql.conf')
@@ -40,27 +41,29 @@ def init_cluster():
                 conf_file.write("max_replication_slots = 10\n")
                 conf_file.write("logging_collector = on\n")
 
-        logger.debug("Clusters have been initialized successfully.")
+        logger.debug("Cluster have been initialized successfully.")
     except Exception as e:
-        logger.error(f"Error initializing clusters: {e}")
+        logger.error(f"Error initializing cluster: {e}")
         sys.exit(1)
 
-def start_cluster():
+
+def start_cluster(implementation: str = "vanilla"):
     """
     Starts all PostgreSQL clusters.
     """
     try:
         config = load_config()
         pg_bin_dir = config.pg_bin_dir
+        pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
         for cluster in clusters:
             cluster_name = cluster.name
-            data_dir = cluster.data_dir
+            data_dir = os.path.join(pg_cluster_dir, cluster_name)
 
             logger.debug(f"Starting cluster '{cluster_name}'...")
             pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-            run_as_postgres([pg_ctl_path, '-D', data_dir, 'start'], drop_stdout=False)
+            run_as_postgres([pg_ctl_path, '-D', data_dir, 'start'], suppress_output=False)
 
 
         logger.debug("All clusters have been started successfully.")
@@ -75,15 +78,16 @@ def status_cluster():
     try:
         config = load_config()
         pg_bin_dir = config.pg_bin_dir
+        pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
         for cluster in clusters:
             cluster_name = cluster.name
-            data_dir = cluster.data_dir
+            data_dir = os.path.join(pg_cluster_dir, cluster_name)
 
             logger.debug(f"Checking status for cluster '{cluster_name}'...")
             pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-            run_as_postgres([pg_ctl_path, '-D', data_dir, 'status'], drop_stdout=False)
+            run_as_postgres([pg_ctl_path, '-D', data_dir, 'status'], suppress_output=False)
 
         logger.debug("Status check completed for all clusters.")
     except Exception as e:
@@ -97,15 +101,16 @@ def stop_cluster():
     try:
         config = load_config()
         pg_bin_dir = config.pg_bin_dir
+        pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
         for cluster in clusters:
             cluster_name = cluster.name
-            data_dir = cluster.data_dir
+            data_dir = os.path.join(pg_cluster_dir, cluster_name)
 
             logger.debug(f"Stopping cluster '{cluster_name}'...")
             pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
-            run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop'], drop_stdout=False)
+            run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop'], suppress_output=False)
 
         logger.debug("All clusters have been stopped successfully.")
     except Exception as e:
@@ -119,6 +124,7 @@ def start_server(cluster_name):
     try:
         config = load_config()
         pg_bin_dir = config.pg_bin_dir
+        pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
         cluster = next((c for c in clusters if c.name == cluster_name), None)
@@ -126,7 +132,7 @@ def start_server(cluster_name):
             logger.debug(f"Cluster '{cluster_name}' not found.")
             return
 
-        data_dir = cluster.data_dir
+        data_dir = os.path.join(pg_cluster_dir, cluster_name)
         logger.debug(f"Запуск кластера '{cluster_name}'...")
         pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
         run_as_postgres([pg_ctl_path, '-D', data_dir, '-l', os.path.join(data_dir, 'logfile'), 'start'])
@@ -143,6 +149,7 @@ def stop_server(cluster_name):
     try:
         config = load_config()
         pg_bin_dir = config.pg_bin_dir
+        pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
         cluster = next((c for c in clusters if c.name == cluster_name), None)
@@ -150,8 +157,8 @@ def stop_server(cluster_name):
             logger.debug(f"Cluster '{cluster_name}' not found.")
             return
 
-        data_dir = cluster.data_dir
-        logger.debug(f"Stopping cluster '{cluster_name}'...")
+        data_dir = os.path.join(pg_cluster_dir, cluster_name)
+        logger.debug(f"Stopping server '{cluster_name}'...")
         pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
         run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop', '-m', 'fast'])
 

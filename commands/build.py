@@ -4,11 +4,10 @@ import subprocess
 import sys
 import os
 import click
-import json
 from utils.config_loader import load_config
 from utils.log_handler import logger
 
-def build_postgresql(clean: bool = False):
+def build_postgresql(clean: bool = False,  implementation: str = "vanilla"):
     """
     Builds and installs PostgreSQL from source.
 
@@ -83,8 +82,8 @@ def build_postgresql(clean: bool = False):
 
 @click.command(name='build')
 @click.option('--clean', is_flag=True, help="Run 'make clean' before building")
-def build_postgresql_cmd(clean: bool):
+def build_postgresql_cmd(clean: bool = False, implementation: str = "vanilla"):
     """
     CLI command: Builds and installs PostgreSQL from source.
     """
-    build_postgresql(clean=clean)
+    build_postgresql(clean=clean, implementation=implementation)

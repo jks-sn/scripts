@@ -1,8 +1,6 @@
 #main.py
 
-import os
-import sys
-import unittest
+import subprocess
 import click
 from commands.build import build_postgresql_cmd
 from commands.cluster import (
@@ -17,7 +15,7 @@ from commands.replica1 import setup_replica1_cmd
 from commands.replica2 import setup_replica2_cmd
 from commands.replication import setup_replication_cmd
 from commands.clean_replication import clean_replication_cmd
-from utils.tesstHandler import TestHandler
+from tests.tests import tests_cmd
 
 @click.group()
 @click.option(
@@ -46,47 +44,35 @@ cli.add_command(setup_master_cmd)
 cli.add_command(setup_replica1_cmd)
 cli.add_command(setup_replica2_cmd)
 
-def iterate_tests(suite):
-    """Рекурсивно обходит все тесты в TestSuite."""
-    for test in suite:
-        if isinstance(test, unittest.TestCase):
-            yield test
-        elif isinstance(test, unittest.TestSuite):
-            yield from iterate_tests(test)
-        else:
-            # Неожиданный тип объекта
-            pass
-
-@cli.command()
-@click.option('--tags', '-t', multiple=True, help="Теги тестов для запуска (dml, ddl)")
-def tests_cmd(tags):
-    """Запуск тестов."""
-    click.echo("Запуск тестов...")
-    loader = unittest.TestLoader()
-    tests = loader.discover('tests')
-
-    if tags:
-        # Фильтруем тесты по тегам
-        filtered_tests = unittest.TestSuite()
-        for test in iterate_tests(tests):
-            test_method = getattr(test, test._testMethodName)
-            test_tags = getattr(test_method, 'tags', [])
-            if any(tag in test_tags for tag in tags):
-                filtered_tests.addTest(test)
-        tests = filtered_tests
-
-    click.echo(f"Найдено тестов: {tests.countTestCases()}")
-    runner = unittest.TextTestRunner(resultclass=TestHandler, verbosity=2)
-    result = runner.run(tests)
-
-    print("\nTest Summary:")
-    print(f"Total tests run: {result.testsRun}")
-    print(f"Successes: {len(result.successes)}")
-    print(f"Failures: {len(result.failures_list)}")
-    print(f"Errors: {len(result.errors_list)}")
-    print(f"Skipped: {len(result.skipped_list)}")
-    sys.exit(0 if result.wasSuccessful() else 1)
-
 cli.add_command(tests_cmd)
+
+
+@cli.command(name='full')
+@click.option('--tags', '-t', multiple=True, help="Markers (tags) to run (e.g. ddl, cascade_ddl)")
+@click.pass_context
+def full_cmd(ctx, tags):
+    """
+    A full pipeline command:
+      1) build PostgreSQL,
+      2) init clusters,
+      3) start clusters,
+      4) run tests (pytest) with the specified markers/tags
+    """
+    implementation = ctx.obj['IMPLEMENTATION']
+
+    from commands.build import build_postgresql
+    build_postgresql(clean=True, implementation=implementation)
+
+    from commands.cluster import init_cluster
+    init_cluster(implementation=implementation)
+
+
+    from commands.cluster import start_cluster
+    start_cluster(implementation=implementation)
+
+    from tests.tests import run_tests
+    run_tests(implementation=implementation, tags=tags)
+
+
 if __name__ == '__main__':
     cli(obj={})

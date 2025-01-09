@@ -1,6 +1,5 @@
 # utils/subscription_decorator.py
 
-import unittest
 from functools import wraps
 
 from utils.repliaction_utils import create_subscription, drop_subscription

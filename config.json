@@ -1,6 +1,7 @@
 {
-  "pg_source_dir": "/home/jks/pgs/pg_16_ddl_cascade",
+  "pg_source_dir": "/home/jks/pgs/pg_16_ddl",
   "pg_bin_dir": "/usr/local/pgsql/bin",
+  "pg_cluster_dir": "/usr/local/pgsql",
   "clusters": [
     {
       "name": "master",
@@ -20,7 +21,6 @@
       "name": "replica1",
       "replication_schema": "replication",
       "replication_table": "table1",
-      "data_dir": "/usr/local/pgsql/replica1",
       "port": 5433,
       "conn_params": {
         "host": "localhost",
@@ -34,7 +34,6 @@
       "name": "replica2",
       "replication_schema": "replication",
       "replication_table": "table1",
-      "data_dir": "/usr/local/pgsql/replica2",
       "port": 5434,
       "conn_params": {
         "host": "localhost",

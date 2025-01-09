@@ -14,29 +14,17 @@ from utils.sql_templates import (
     generate_drop_table_query)
 
 class DDLPatch(DDLInterface):
-    def __init__(self, conn_params: dict, server_name: str):
-        self.conn_params = conn_params
-        self.server_name = server_name
+    def __init__(self, config):
+        self.config = config
+        self.cluster_conn = {}
+        for cluster in config.clusters:
+            self.cluster_conn[cluster.name] = cluster.conn_params
 
-    def create_schema(self, schema_name: str):
-        sql = generate_create_schema_query(schema_name)
-        execute_sql(self.conn_params, sql, self.server_name)
-        logger.debug(f"Schema '{schema_name}' created on {self.server_name}")
-
-    def drop_schema(self, schema_name: str):
-        sql = generate_drop_schema_query(schema_name)
-        execute_sql(self.conn_params, sql, self.server_name)
-        logger.debug(f"Schema '{schema_name}' dropped on {self.server_name}")
-
-    def create_table(self, schema_name: str, table_name: str):
-        sql = generate_create_table_query(schema_name, table_name)
-        execute_sql(self.conn_params, sql, self.server_name)
-        logger.debug(f"Table '{schema_name}.{table_name}' created on {self.server_name}")
-
-    def drop_table(self, schema_name: str, table_name: str):
-        sql = generate_drop_table_query(schema_name, table_name)
-        execute_sql(self.conn_params, sql, self.server_name)
-        logger.debug(f"Table '{schema_name}.{table_name}' dropped on {self.server_name}")
+    def _execute(self, cluster_name: str, sql: str):
+        conn_params = self.cluster_conn.get(cluster_name)
+        if not conn_params:
+            raise ValueError(f"Unknown cluster name: {cluster_name}")
+        execute_sql(conn_params, sql, server_name=cluster_name)
 
     def create_publication(self, publication_name: str, schema_name: str, ddl: bool):
         sql = generate_create_publication_query(publication_name, schema_name, ddl)
@@ -57,3 +45,62 @@ class DDLPatch(DDLInterface):
         sql = generate_drop_subscription_query(subscription_name)
         execute_sql(self.conn_params, sql, self.server_name)
         logger.debug(f"Subscription '{subscription_name}' dropped on {self.server_name}")
+
+    def create_schema(self, schema_name: str):
+        sql = generate_create_schema_query(schema_name)
+        execute_sql(self.conn_params, sql, self.server_name)
+        logger.debug(f"Schema '{schema_name}' created on {self.server_name}")
+
+    def drop_schema(self, schema_name: str):
+        sql = generate_drop_schema_query(schema_name)
+        execute_sql(self.conn_params, sql, self.server_name)
+        logger.debug(f"Schema '{schema_name}' dropped on {self.server_name}")
+
+    def create_table(self, cluster_name: str, schema_name: str, table_name: str):
+        sql = generate_create_table_query(schema_name, table_name)
+        self._execute(cluster_name, sql)
+        logger.debug(f"Table '{schema_name}.{table_name}' created on {self.server_name}")
+
+    def drop_table(self, cluster_name: str, schema_name: str, table_name: str):
+        sql = generate_drop_table_query(schema_name, table_name)
+        self._execute(cluster_name, sql)
+        logger.debug(f"Table '{schema_name}.{table_name}' dropped on {self.server_name}")
+
+    def add_column(self, cluster_name: str, schema_name: str, table_name: str,
+                   column_name: str, column_type: str = "INTEGER", default_value=None):
+        default_clause = f"DEFAULT {default_value}" if default_value is not None else ""
+        sql = f"ALTER TABLE {schema_name}.{table_name} ADD COLUMN {column_name} {column_type} {default_clause};"
+        self._execute(cluster_name, sql)
+        logger.debug(f"[DDLPatch] Added column {column_name} to {schema_name}.{table_name} on {cluster_name}")
+
+    def table_exists(self, cluster_name: str, schema_name: str, table_name: str) -> bool:
+        sql = f"""
+        SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.tables
+          WHERE table_schema = '{schema_name}'
+            AND table_name = '{table_name}'
+        );
+        """
+        conn_params = self.cluster_conn.get(cluster_name)
+        results = execute_sql(conn_params, sql, server_name=cluster_name, fetch=True)
+        return results and results[0][0] is True
+
+    def get_table_columns(self, cluster_name: str, schema_name: str, table_name: str):
+        sql = f"""
+        SELECT column_name, data_type, column_default
+        FROM information_schema.columns
+        WHERE table_schema = '{schema_name}'
+          AND table_name = '{table_name}';
+        """
+        conn_params = self.cluster_conn.get(cluster_name)
+        results = execute_sql(conn_params, sql, server_name=cluster_name, fetch=True)
+        columns = []
+        for row in results:
+            col_name, col_type, col_default = row
+            columns.append({
+                "column_name": col_name,
+                "data_type": col_type,
+                "default": col_default
+            })
+        return columns
