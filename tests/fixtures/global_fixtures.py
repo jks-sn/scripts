@@ -36,5 +36,5 @@ def ddl_session(implementation):
     Creates one DDLInterface instance for the entire test session.
     """
     config = load_config()
-    ddl_impl = get_ddl_implementation(implementation, config)
+    ddl_impl = get_ddl_implementation("postgresql", implementation, config)
     return ddl_impl

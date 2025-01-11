@@ -4,7 +4,7 @@ import pytest
 import time
 
 @pytest.mark.ddl
-def test_drop_table(ddl_session, master_cluster, replica1_cluster):
+def test_drop_table(local_setup, ddl_session, master_cluster, replica1_cluster):
     schema_name = master_cluster.replication_schema
     master_name = master_cluster.name
     replica_name = replica1_cluster.name

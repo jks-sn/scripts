@@ -17,33 +17,34 @@ def setup_master(implementation: str, ddl=False):
         config = load_config()
 
         master_server = next(c for c in config.clusters if c.name == "master")
+
         ddl_master = get_ddl_implementation(
             db_type="postgresql",
             implementation_type=implementation,
-            conn_params=master_server.conn_params.model_dump(),
-            server_name=master_server.name)
+            config=config)
 
+        server_name = master_server.name
         try:
-            logger.debug(f"Deploying schema and table on {master_server.name}...")
-            ddl_master.create_schema(master_server.replication_schema)
-            ddl_master.create_table(master_server.replication_schema, master_server.replication_table)
-            logger.debug(f"Schema and table deployed on {master_server.name}.")
+            logger.debug(f"Deploying schema and table on {server_name}...")
+            ddl_master.create_schema(server_name, master_server.replication_schema)
+            ddl_master.create_table(server_name, master_server.replication_schema, master_server.replication_table)
+            logger.debug(f"Schema and table deployed on {server_name}.")
         except Exception as e:
-            logger.error(f"Error creating schema or table on {master_server.name}: {e}")
+            logger.error(f"Error creating schema or table on {server_name}: {e}")
             sys.exit(1)
 
         try:
-            logger.debug(f"Creating publication on {master_server.name}...")
+            logger.debug(f"Creating publication on {server_name}...")
             ddl_master.create_publication(
-                publication_name=f"pub_{master_server.name}",
+                server_name,
+                publication_name=f"pub_{server_name}",
                 schema_name=master_server.replication_schema,
                 ddl=ddl)
         except Exception as e:
-            logger.error(f"Error creating publication on {master_server.name}: {e}")
+            logger.error(f"Error creating publication on {server_name}: {e}")
             sys.exit(1)
 
         logger.debug("Master setup successfully completed.")
-
     except Exception as e:
         logger.error(f"Error setting up master: {e}")
         sys.exit(1)

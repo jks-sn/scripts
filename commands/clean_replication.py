@@ -17,7 +17,7 @@ def clean_replication():
 
         for cluster in clusters:
             server_name = cluster.name
-            conn_params = cluster.conn_params.dict()
+            conn_params = cluster.conn_params.model_dump()
             schema_name = cluster.replication_schema
 
             logger.debug(f"Starting full replication cleanup on server '{server_name}'...")

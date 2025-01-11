@@ -4,7 +4,7 @@ import pytest
 import time
 
 @pytest.mark.ddl
-def test_alter_table_add_column(ddl_session, master_cluster, replica1_cluster):
+def test_alter_table_add_column(local_setup, ddl_session, master_cluster, replica1_cluster):
     """
     Testing ALTER TABLE ADD COLUMN.
     """

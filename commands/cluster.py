@@ -1,5 +1,7 @@
 #commands/cluster.py
 
+import grp
+import pwd
 import subprocess
 import os
 import sys
@@ -19,6 +21,10 @@ def init_cluster(implementation: str = "vanilla"):
         pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
+        initdb_path = os.path.join(pg_bin_dir, 'initdb')
+        uid = pwd.getpwnam("postgres").pw_uid
+        gid = grp.getgrnam("postgres").gr_gid
+
         for cluster in clusters:
             cluster_name = cluster.name
             data_dir = os.path.join(pg_cluster_dir, cluster_name)
@@ -26,11 +32,16 @@ def init_cluster(implementation: str = "vanilla"):
 
             if os.path.exists(data_dir):
                 logger.debug(f"Removing old data dir '{data_dir}' for cluster '{cluster_name}'...")
-                run_as_postgres([f'rm -rf {data_dir}/*'])
+                subprocess.run(["rm", "-rf", data_dir], check=True)
 
-            initdb_path = os.path.join(pg_bin_dir, 'initdb')
-            logger.debug(f"Initializing cluster '{cluster_name}'...")
-            run_as_postgres([initdb_path, '-D', data_dir])
+            logger.debug(f"Creating new data dir '{data_dir}' for cluster '{cluster_name}'...")
+            os.makedirs(data_dir, exist_ok=True)
+
+            logger.debug(f"Chown data dir '{data_dir}' to postgres:postgres")
+            os.chown(data_dir, uid, gid)
+
+            logger.debug(f"Initializing cluster '{cluster_name}' with initdb => {data_dir}")
+            run_as_postgres([initdb_path, "-D", data_dir])
 
             conf_path = os.path.join(data_dir, 'postgresql.conf')
             with open(conf_path, 'a') as conf_file:

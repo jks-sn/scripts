@@ -23,9 +23,10 @@ def setup_replica2(implementation: str):
         ddl_replica2 = get_ddl_implementation(
             db_type="postgresql",
             implementation_type=implementation,
-            conn_params=replica2_server.conn_params.model_dump(),
-            server_name=replica2_server.name
+            config=config
         )
+
+        server_name = replica2_server.name
 
         replica1_subscription_info = (
             f"host={replica1_server.conn_params.host} "
@@ -37,24 +38,25 @@ def setup_replica2(implementation: str):
         logger.debug("Setting up Replica 2...")
 
         try:
-            logger.debug(f"Deploying schema and table on Replica 2: {replica2_server.name}...")
-            ddl_replica2.create_schema(replica2_server.replication_schema)
-            ddl_replica2.create_table(replica2_server.replication_schema, replica2_server.replication_table)
-            logger.debug(f"Schema and table deployed on {replica2_server.name}.")
+            logger.debug(f"Deploying schema and table on Replica 2: {server_name}...")
+            ddl_replica2.create_schema(server_name, replica2_server.replication_schema)
+            ddl_replica2.create_table(server_name, replica2_server.replication_schema, replica2_server.replication_table)
+            logger.debug(f"Schema and table deployed on {server_name}.")
         except Exception as e:
-            logger.error(f"Error creating schema or table on {replica2_server.name}: {e}")
+            logger.error(f"Error creating schema or table on {server_name}: {e}")
             sys.exit(1)
 
         try:
-            logger.debug(f"Creating subscription to Replica 1 on Replica 2: {replica2_server.name}...")
+            logger.debug(f"Creating subscription to Replica 1 on Replica 2: {server_name}...")
             ddl_replica2.create_subscription(
-                subscription_name=f"sub_{replica2_server.name}",
+                cluster_name=server_name,
+                subscription_name=f"sub_{server_name}",
                 connection_info=replica1_subscription_info,
                 publication_name=f"pub_{replica1_server.name}"
             )
-            logger.debug(f"Subscription to Replica 1 created on {replica2_server.name}.")
+            logger.debug(f"Subscription to Replica 1 created on {server_name}.")
         except Exception as e:
-            logger.error(f"Error creating subscription on {replica2_server.name}: {e}")
+            logger.error(f"Error creating subscription on {server_name}: {e}")
             sys.exit(1)
 
         logger.debug("Replica 2 setup successfully completed.")

@@ -27,7 +27,7 @@ def build_postgresql(clean: bool = False,  implementation: str = "vanilla"):
                 ['make', 'clean'],
                 cwd=pg_source_dir,
                 check=True,
-                stdout=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
                 stderr=subprocess.STDOUT,
                 text=True
             )
@@ -38,10 +38,10 @@ def build_postgresql(clean: bool = False,  implementation: str = "vanilla"):
             ['./configure'],
             cwd=pg_source_dir,
             check=True,
-            stdout=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             text=True
-        )
+            )
         logger.debug(f"'./configure' output:\n{result.stdout}")
 
         logger.debug("Running 'make'...")
@@ -49,7 +49,7 @@ def build_postgresql(clean: bool = False,  implementation: str = "vanilla"):
             ['make'],
             cwd=pg_source_dir,
             check=True,
-            stdout=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
             text=True
@@ -61,7 +61,7 @@ def build_postgresql(clean: bool = False,  implementation: str = "vanilla"):
             ['make', 'install'],
             cwd=pg_source_dir,
             check=True,
-            stdout=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             text=True
         )

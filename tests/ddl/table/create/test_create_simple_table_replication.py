@@ -4,8 +4,7 @@ import pytest
 import time
 
 @pytest.mark.ddl
-@pytest.mark.usefixtures("dynamic_replication_setup")
-def test_create_simple_table(ddl_session, master_cluster, replica1_cluster):
+def test_create_simple_table(local_setup, ddl_session, master_cluster, replica1_cluster):
     """
     Testing creation of a table on 'master' cluster, verifying replication on 'replica1'.
     No direct SQL calls, using ddl_session instead.

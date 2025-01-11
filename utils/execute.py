@@ -26,14 +26,15 @@ def execute_sql(
     :raises: psycopg2.DatabaseError if a database error occurs.
     """
     try:
-        with psycopg2.connect(**conn_params) as conn:
-            conn.autocommit = autocommit
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                results = cur.fetchall() if fetch else None
-            if not autocommit:
-                conn.commit()
-            return results
+        conn = psycopg2.connect(**conn_params)
+        conn.autocommit = autocommit
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            results = cur.fetchall() if fetch else None
+        if not autocommit:
+            conn.commit()
+        conn.close()
+        return results
     except psycopg2.DatabaseError as e:
         logger.error(f"Error executing SQL on server '{server_name}': {e}")
         raise
@@ -50,17 +51,19 @@ def run_as_postgres(command: List[str], suppress_output: bool = True) -> None:
     :raises: subprocess.CalledProcessError if the command fails.
     """
     try:
-        cmd = ['sudo', '-u', 'postgres', 'bash', '-c', ' '.join(command)]
+        cmd = ["sudo", "-u", "postgres"] + command
+        log_cmd = " ".join(cmd)
         if suppress_output:
             subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error executing command as postgres: {' '.join(command)}")
+        logger.error(f"Error executing command as postgres: {log_cmd}")
         logger.error(str(e))
-        click.secho(f"Error executing command as postgres: {' '.join(command)}", fg='red')
+        click.secho(f"Error executing command as postgres: {log_cmd}", fg='red')
         sys.exit(1)
     except Exception as e:
         logger.error(f"Unexpected error executing command as postgres: {e}")
         click.secho(f"Unexpected error executing command as postgres: {e}", fg='red')
+        sys.exit(1)
 
