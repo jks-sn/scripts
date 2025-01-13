@@ -21,11 +21,11 @@ class Vanilla(DDLInterface):
         for cluster in config.clusters:
             self.cluster_conn[cluster.name] = cluster.conn_params.model_dump()
 
-    def _execute(self, cluster_name: str, sql: str):
+    def _execute(self, cluster_name: str, sql: str, autocommit: bool = False):
         conn_params = self.cluster_conn.get(cluster_name)
         if not conn_params:
-            raise ValueError(f"Unknown cluster: {cluster_name}")
-        execute_sql(conn_params, sql, server_name=cluster_name)
+            raise ValueError(f"Unknown cluster name: {cluster_name}")
+        execute_sql(conn_params, sql, server_name=cluster_name, autocommit=autocommit)
 
     def create_publication(self, cluster_name: str, publication_name: str, schema_name: str, ddl: bool):
         sql = generate_create_publication_query(publication_name, schema_name, ddl=False)
@@ -39,12 +39,12 @@ class Vanilla(DDLInterface):
 
     def create_subscription(self, cluster_name: str, subscription_name: str, connection_info: str, publication_name: str):
         sql = generate_create_subscription_query(subscription_name, connection_info, publication_name)
-        self._execute(cluster_name, sql)
+        self._execute(cluster_name, sql, autocommit=True)
         logger.debug(f"[Vanilla] Subscription '{subscription_name}' created on '{cluster_name}'")
 
     def drop_subscription(self, cluster_name: str, subscription_name: str):
         sql = generate_drop_subscription_query(subscription_name)
-        self._execute(cluster_name, sql)
+        self._execute(cluster_name, sql, autocommit=True)
         logger.debug(f"[Vanilla] Subscription '{subscription_name}' dropped on '{cluster_name}'")
 
     def create_schema(self, cluster_name: str, schema_name: str):

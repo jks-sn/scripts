@@ -12,16 +12,11 @@ from utils.log_handler import logger
 @pytest.fixture(scope="session", autouse=True)
 def global_setup(request, implementation):
     """
-    Session-scoped fixture that runs once:
-      1) Build PostgreSQL
-      2) Init clusters
-      3) Start clusters
+    Session-scoped fixture that runs once.
     Then yields, and at the end does optional teardown (stop clusters).
     """
     logger.debug("[global_setup] Building, init, start clusters.")
 
-    build_postgresql(clean=False, implementation=implementation)
-    init_cluster()
     start_cluster()
 
     yield

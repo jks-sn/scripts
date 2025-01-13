@@ -66,10 +66,6 @@ def full_cmd(ctx, tags):
     from commands.cluster import init_cluster
     init_cluster(implementation=implementation)
 
-
-    from commands.cluster import start_cluster
-    start_cluster(implementation=implementation)
-
     from tests.tests import run_tests
     run_tests(implementation=implementation, tags=tags)
 
