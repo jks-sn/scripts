@@ -2,9 +2,10 @@
   "pg_source_dir": "/home/jks/pgs/pg16",
   "pg_bin_dir": "/usr/local/pgsql/bin",
   "pg_cluster_dir": "/usr/local/pgsql",
-  "clusters": [
+  "nodes": [
     {
       "name": "master",
+      "role": "master",
       "replication_schema": "replication",
       "replication_table": "table1",
       "data_dir": "/usr/local/pgsql/master",
@@ -19,6 +20,7 @@
     },
     {
       "name": "replica1",
+      "role": "replica",
       "replication_schema": "replication",
       "replication_table": "table1",
       "port": 5433,
@@ -32,6 +34,7 @@
     },
     {
       "name": "replica2",
+      "role": "replica",
       "replication_schema": "replication",
       "replication_table": "table1",
       "port": 5434,

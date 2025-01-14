@@ -1,51 +1,40 @@
 # interfaces/ddl_interface.py
 
 from abc import ABC, abstractmethod
-from typing import List, Dict
 
 class DDLInterface(ABC):
 
     @abstractmethod
-    def create_publication(self, cluster_name: str, publication_name: str, schema_name: str, ddl: bool):
+    def build_source(self, clean: bool = False) -> None:
+        pass
+
+
+    @abstractmethod
+    def init_cluster(self) -> None:
+        pass
+
+
+    @abstractmethod
+    def setup_master(self, node_name: str, ddl: bool) -> None:
         pass
 
     @abstractmethod
-    def drop_publication(self, cluster_name: str, publication_name: str):
+    def setup_replica(self, node_name: str, source_node_name: str, ddl: bool, cascade: bool) -> None:
         pass
 
     @abstractmethod
-    def create_subscription(self, cluster_name: str, subscription_name: str, connection_info: str, publication_name: str):
+    def cleanup_cluster(self) -> None:
+        pass
+
+
+    @abstractmethod
+    def start_cluster(self) -> None:
         pass
 
     @abstractmethod
-    def drop_subscription(self, cluster_name: str, subscription_name: str):
+    def status_cluster(self) -> None:
         pass
 
     @abstractmethod
-    def create_schema(self, cluster_name: str, schema_name: str):
+    def stop_cluster(self) -> None:
         pass
-
-    @abstractmethod
-    def drop_schema(self, cluster_name: str, schema_name: str):
-        pass
-    @abstractmethod
-    def create_table(self, cluster_name: str, schema_name: str, table_name: str):
-        pass
-
-    @abstractmethod
-    def drop_table(self, cluster_name: str, schema_name: str, table_name: str):
-        pass
-
-    @abstractmethod
-    def add_column(self, cluster_name: str, schema_name: str, table_name: str,
-                   column_name: str, column_type: str = "INTEGER", default_value=None):
-        pass
-
-    @abstractmethod
-    def table_exists(self, cluster_name: str, schema_name: str, table_name: str) -> bool:
-        pass
-
-    @abstractmethod
-    def get_table_columns(self, cluster_name: str, schema_name: str, table_name: str) -> List[Dict]:
-        pass
-

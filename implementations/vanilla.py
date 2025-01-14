@@ -1,107 +1,121 @@
 # implementations/vanilla.py
 
-from interfaces.ddl_interface import DDLInterface
+import os
+import subprocess
+import sys
+from implementations.base_ddl import BaseDDL
+from sql.publication import generate_drop_publication_query
+from sql.schema import generate_drop_schema_query
+from sql.subscription import generate_drop_subscription_query
 from utils.execute import execute_sql
 from utils.log_handler import logger
-from utils.sql_templates import (
-    generate_create_publication_query,
-    generate_create_schema_query,
-    generate_create_subscription_query,
-    generate_create_table_query,
-    generate_drop_publication_query,
-    generate_drop_schema_query,
-    generate_drop_subscription_query,
-    generate_drop_table_query
-)
 
-class Vanilla(DDLInterface):
-    def __init__(self, config):
-        self.config = config
-        self.cluster_conn = {}
-        for cluster in config.clusters:
-            self.cluster_conn[cluster.name] = cluster.conn_params.model_dump()
+class Vanilla(BaseDDL):
+    """
+    Vanilla realistaion without any patches, extenshions и т.д.
+    """
 
-    def _execute(self, cluster_name: str, sql: str, autocommit: bool = False):
-        conn_params = self.cluster_conn.get(cluster_name)
-        if not conn_params:
-            raise ValueError(f"Unknown cluster name: {cluster_name}")
-        execute_sql(conn_params, sql, server_name=cluster_name, autocommit=autocommit)
+    def build_source(self, clean: bool = False) -> None:
+        logger.debug("[Vanilla] Building PostgreSQL from source if needed.")
 
-    def create_publication(self, cluster_name: str, publication_name: str, schema_name: str, ddl: bool):
-        sql = generate_create_publication_query(publication_name, schema_name, ddl=False)
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Publication '{publication_name}' created on '{cluster_name}'")
+        config = self.config
+        pg_source_dir = config.pg_source_dir
 
-    def drop_publication(self, cluster_name: str, publication_name: str):
-        sql = generate_drop_publication_query(publication_name)
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Publication '{publication_name}' dropped on '{cluster_name}'")
+        if not pg_source_dir or not os.path.exists(pg_source_dir):
+            logger.error(f"[Vanilla] PostgreSQL source directory not found: {pg_source_dir}")
+            sys.exit(1)
 
-    def create_subscription(self, cluster_name: str, subscription_name: str, connection_info: str, publication_name: str):
-        sql = generate_create_subscription_query(subscription_name, connection_info, publication_name)
-        self._execute(cluster_name, sql, autocommit=True)
-        logger.debug(f"[Vanilla] Subscription '{subscription_name}' created on '{cluster_name}'")
+        try:
+            if clean:
+                logger.debug("[Vanilla] Running 'make clean'...")
+                result = subprocess.run(['make', 'clean'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, text=True)
 
-    def drop_subscription(self, cluster_name: str, subscription_name: str):
-        sql = generate_drop_subscription_query(subscription_name)
-        self._execute(cluster_name, sql, autocommit=True)
-        logger.debug(f"[Vanilla] Subscription '{subscription_name}' dropped on '{cluster_name}'")
+            logger.debug("[Vanilla] Running './configure'...")
+            result = subprocess.run(['./configure'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-    def create_schema(self, cluster_name: str, schema_name: str):
-        sql = generate_create_schema_query(schema_name)
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Schema '{schema_name}' created on '{cluster_name}'")
+            logger.debug("[Vanilla] Running 'make'...")
+            result = subprocess.run(['make'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, text=True)
 
-    def drop_schema(self, cluster_name: str, schema_name: str):
-        sql = generate_drop_schema_query(schema_name)
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Schema '{schema_name}' dropped on '{cluster_name}'")
+            logger.debug("[Vanilla] Running 'make install'...")
+            result = subprocess.run(['make', 'install'], cwd=pg_source_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, text=True)
 
-    def create_table(self, cluster_name: str, schema_name: str, table_name: str):
-        sql = generate_create_table_query(schema_name, table_name)
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Table '{schema_name}.{table_name}' created on '{cluster_name}'")
+            logger.debug("[Vanilla] PostgreSQL built and installed successfully.")
 
-    def drop_table(self, cluster_name: str, schema_name: str, table_name: str):
-        sql = generate_drop_table_query(schema_name, table_name)
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Table '{schema_name}.{table_name}' dropped on '{cluster_name}'")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"[Vanilla] Build failed: {e}")
+            sys.exit(1)
 
-    def add_column(self, cluster_name: str, schema_name: str, table_name: str,
-                   column_name: str, column_type: str = "INTEGER", default_value=None):
-        default_clause = f"DEFAULT {default_value}" if default_value is not None else ""
-        sql = f"ALTER TABLE {schema_name}.{table_name} ADD COLUMN {column_name} {column_type} {default_clause};"
-        self._execute(cluster_name, sql)
-        logger.debug(f"[Vanilla] Added column {column_name} to {schema_name}.{table_name} on '{cluster_name}'")
+    def setup_master(self, node_name: str, ddl: bool) -> None:
 
-    def table_exists(self, cluster_name: str, schema_name: str, table_name: str) -> bool:
-        sql = f"""
-        SELECT EXISTS (
-          SELECT 1
-          FROM information_schema.tables
-          WHERE table_schema = '{schema_name}'
-            AND table_name = '{table_name}'
-        );
-        """
-        conn_params = self.cluster_conn.get(cluster_name)
-        results = execute_sql(conn_params, sql, server_name=cluster_name, fetch=True)
-        return results and results[0][0] is True
+        logger.debug(f"[Vanilla] Setting up master '{node_name}' with ddl={False}...")
+        master_cluster = self.config.get_cluster_by_name(node_name)
 
-    def get_table_columns(self, cluster_name: str, schema_name: str, table_name: str):
-        sql = f"""
-        SELECT column_name, data_type, column_default
-        FROM information_schema.columns
-        WHERE table_schema = '{schema_name}'
-          AND table_name = '{table_name}';
-        """
-        conn_params = self.cluster_conn.get(cluster_name)
-        results = execute_sql(conn_params, sql, server_name=cluster_name, fetch=True)
-        columns = []
-        for row in results:
-            col_name, col_type, col_default = row
-            columns.append({
-                "column_name": col_name,
-                "data_type": col_type,
-                "default": col_default
-            })
-        return columns
+        self.create_schema(node_name, master_cluster.replication_schema)
+        self.create_table(node_name, master_cluster.replication_schema, master_cluster.replication_table)
+        publication_name = f"pub_{node_name}"
+        self.create_publication(node_name, publication_name, master_cluster.replication_schema, False)
+
+    def setup_replica(self, node_name: str, source_node_name: str, ddl: bool, cascade: bool) -> None:
+        logger.debug(f"[Vanilla] No preparation needed for subscriber '{node_name}'.")
+        replica_server = self.config.get_cluster_by_name(node_name)
+        master_server = self.config.get_cluster_by_name(source_node_name)
+
+        self.create_schema(node_name, replica_server.replication_schema)
+        self.create_table(node_name, replica_server.replication_schema, replica_server.replication_table)
+
+        connection_info = (
+            f"host={master_server.conn_params.host} "
+            f"port={master_server.conn_params.port} "
+            f"dbname={master_server.conn_params.dbname} "
+            f"user={master_server.conn_params.user} "
+            f"password={master_server.conn_params.password}"
+        )
+        subscription_name = f"sub_{node_name}"
+        publication_name = f"pub_{source_node_name}"
+
+        self.create_subscription(node_name, subscription_name, connection_info, publication_name)
+
+        if cascade:
+            cascade_publication_name = f"pub_{node_name}"
+            self.create_publication(node_name, cascade_publication_name, replica_server.replication_schema, False)
+
+    def cleanup_cluster(self) -> None:
+        logger.debug(f"[Vanilla] Cleaning up cluster.")
+        nodes = self.config.nodes
+
+        for node in nodes:
+            server_name = node.name
+            conn_params = node.conn_params.model_dump()
+            subs = self.get_subscriptions(server_name)
+            for (subname,) in subs:
+                drop_sub_sql = generate_drop_subscription_query(subname)
+                try:
+                    execute_sql(conn_params, drop_sub_sql, server_name, autocommit=True)
+                    logger.debug(f"Dropped subscription {subname} on {server_name}")
+                except Exception as e:
+                    logger.error(f"Failed to drop subscription {subname} on {server_name}: {e}")
+
+        for node in nodes:
+            server_name = node.name
+            conn_params = node.conn_params.model_dump()
+            pubs = self.get_publications(server_name)
+            for (pubname,) in pubs:
+                drop_pub_sql = generate_drop_publication_query(pubname);
+                try:
+                    execute_sql(conn_params, drop_pub_sql, server_name)
+                    logger.debug(f"Dropped publication {pubname} on {server_name}")
+                except Exception as e:
+                    logger.error(f"Failed to drop publication {pubname} on {server_name}: {e}")
+
+        for node in nodes:
+            server_name = node.name
+            conn_params = node.conn_params.model_dump()
+            schema_name = node.replication_schema
+            drop_schema_sql = generate_drop_schema_query(schema_name)
+            try:
+                execute_sql(conn_params, drop_schema_sql, server_name)
+                logger.debug(f"Dropped schema {schema_name} on {server_name}")
+            except Exception as e:
+                logger.error(f"Failed to drop schema {schema_name} on {server_name}: {e}")
+
+        logger.debug("Replication cleanup completed on all nodes.")

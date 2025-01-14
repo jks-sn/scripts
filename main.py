@@ -15,6 +15,8 @@ from commands.replica1 import setup_replica1_cmd
 from commands.replica2 import setup_replica2_cmd
 from commands.replication import setup_replication_cmd
 from commands.clean_replication import clean_replication_cmd
+from factories.ddl_factory import get_ddl_implementation
+from models.config import load_config
 from tests.tests import tests_cmd
 
 @click.group()
@@ -60,15 +62,21 @@ def full_cmd(ctx, tags):
     """
     implementation = ctx.obj['IMPLEMENTATION']
 
-    from commands.build import build_postgresql
-    build_postgresql(clean=True, implementation=implementation)
+    config = load_config()
+    ddl_replication = get_ddl_implementation(db_type="postgresql", implementation_type=implementation, config=config)
 
-    from commands.cluster import init_cluster
-    init_cluster(implementation=implementation)
+    ddl_replication.build_source(clean=True)
+
+    ddl_replication.init_cluster()
+
+    ddl_replication.start_cluster()
+
 
     from tests.tests import run_tests
     run_tests(implementation=implementation, tags=tags)
 
+    from commands.cluster import stop_cluster
+    stop_cluster()
 
 if __name__ == '__main__':
     cli(obj={})

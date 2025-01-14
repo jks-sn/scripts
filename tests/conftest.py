@@ -1,8 +1,6 @@
 # tests/conftest.py
 
 import pytest
-from utils.config_loader import load_config
-from factories.ddl_factory import get_ddl_implementation
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "ddl: Marker for tests, that need ddl replication")

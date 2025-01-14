@@ -6,7 +6,7 @@ import logging
 from commands.build import build_postgresql
 from commands.cluster import init_cluster, start_cluster, stop_cluster
 from factories.ddl_factory import get_ddl_implementation
-from utils.config_loader import load_config
+from models.config import load_config
 from utils.log_handler import logger
 
 @pytest.fixture(scope="session", autouse=True)
@@ -15,14 +15,11 @@ def global_setup(request, implementation):
     Session-scoped fixture that runs once.
     Then yields, and at the end does optional teardown (stop clusters).
     """
-    logger.debug("[global_setup] Building, init, start clusters.")
-
-    start_cluster()
+    logger.debug("[global_setup]")
 
     yield
 
-    logger.debug("[global_setup] Teardown => stop clusters.")
-    stop_cluster()
+    logger.debug("[global_setup] Teardown")
 
 
 @pytest.fixture(scope="session")

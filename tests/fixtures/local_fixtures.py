@@ -6,7 +6,7 @@ from commands.replication import setup_replication
 from utils.log_handler import logger
 
 @pytest.fixture(scope="function")
-def local_setup(request, implementation):
+def local_setup(request, implementation, ddl_session):
     logger.debug("[local_setup] PREPARE replication before test.")
     clean_replication()
 
@@ -24,4 +24,4 @@ def local_setup(request, implementation):
     yield
 
     logger.debug("[local_setup] CLEAN replication after test.")
-    clean_replication()
+    clean_replication(implementation=implementation)
