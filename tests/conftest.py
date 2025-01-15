@@ -19,13 +19,15 @@ def pytest_addoption(parser):
     )
 
 @pytest.fixture(scope="session")
-def implementation(request):
+def ddl_implementation(request):
     """
     Returns the DDL implementation chosen via --implementation CLI option.
     Defaults to 'vanilla' if not specified.
     """
-    return request.config.getoption("--implementation")
+    config=load_config()
+    return get_ddl_implementation("postgresql", config)
 
+from factories.ddl_factory import get_ddl_implementation
 from tests.fixtures.cluster_fixtures import *
 from tests.fixtures.global_fixtures import *
 from tests.fixtures.local_fixtures import *

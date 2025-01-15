@@ -7,7 +7,7 @@ from commands.replica1 import setup_replica1
 from commands.replica2 import setup_replica2
 from utils.log_handler import logger
 
-def setup_replication(implementation: str, ddl: bool = False, cascade: bool = False):
+def setup_replication(ddl: bool = False, cascade: bool = False):
     """
     Performs a full replication setup:
     1) Sets up the Master (optionally with DDL replication).
@@ -20,7 +20,7 @@ def setup_replication(implementation: str, ddl: bool = False, cascade: bool = Fa
     """
     try:
         logger.debug("Starting master setup...")
-        setup_master(implementation=implementation, ddl=ddl)
+        setup_master(ddl=ddl)
         logger.debug("Master setup completed.")
     except Exception as e:
         logger.error(f"Error during master setup: {e}")
@@ -28,7 +28,7 @@ def setup_replication(implementation: str, ddl: bool = False, cascade: bool = Fa
 
     try:
         logger.debug("Starting Replica 1 setup...")
-        setup_replica1(implementation=implementation, ddl=ddl, cascade=cascade)
+        setup_replica1(ddl=ddl, cascade=cascade)
         logger.debug("Replica 1 setup completed.")
     except Exception as e:
         logger.error(f"Error during Replica 1 setup: {e}")
@@ -37,7 +37,7 @@ def setup_replication(implementation: str, ddl: bool = False, cascade: bool = Fa
     if(cascade):
         try:
             logger.debug("Starting Replica 2 setup...")
-            setup_replica2(implementation=implementation)
+            setup_replica2()
             logger.debug("Replica 2 setup completed.")
         except Exception as e:
             logger.error(f"Error during Replica 2 setup: {e}")
@@ -50,14 +50,12 @@ def setup_replication(implementation: str, ddl: bool = False, cascade: bool = Fa
 @click.option('--ddl', is_flag=True, help='Enable DDL replication in the publication')
 @click.option('--cascading-replication', is_flag=True, help='Enable cascading replication for Replica 1')
 @click.pass_context
-def setup_replication_cmd(ctx, ddl: bool, cascade: bool):
+def setup_replication_cmd(ddl: bool, cascade: bool):
     """
     CLI command: Performs a full replication setup (Master, Replica1, and Replica2).
     """
-    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
     try:
         setup_replication(
-            implementation=implementation,
             ddl=ddl,
             cascade=cascade
         )

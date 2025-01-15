@@ -13,28 +13,28 @@ from models.config import load_config
 from utils.log_handler import logger
 
 
-def init_cluster(implementation: str = "vanilla"):
+def init_cluster():
     """
     Init cluster
     """
     config = load_config()
-    ddl_replication = get_ddl_implementation(db_type="postgresql", implementation_type=implementation, config=config)
+    ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
     ddl_replication.init_cluster()
 
-def start_cluster(implementation: str = "vanilla"):
+def start_cluster():
     """
     Starts all PostgreSQL clusters.
     """
     config = load_config()
-    ddl_replication = get_ddl_implementation(db_type="postgresql", implementation_type=implementation, config=config)
+    ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
     ddl_replication.start_cluster()
 
-def status_cluster(implementation: str = "vanilla"):
+def status_cluster():
     """
     Checks the status of all PostgreSQL clusters.
     """
     config = load_config()
-    ddl_replication = get_ddl_implementation(db_type="postgresql", implementation_type=implementation, config=config)
+    ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
     ddl_replication.status_cluster()
 
 def stop_cluster():
@@ -42,7 +42,7 @@ def stop_cluster():
     Stops all PostgreSQL clusters using pg_ctl.
     """
     config = load_config()
-    ddl_replication = get_ddl_implementation(db_type="postgresql", implementation_type=implementation, config=config)
+    ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
     ddl_replication.stop_cluster()
 
 def start_server(cluster_name):
@@ -96,25 +96,21 @@ def stop_server(cluster_name):
         sys.exit(1)
 
 @click.command(name='init')
-def init_cluster_cmd(ctx):
+def init_cluster_cmd():
     """CLI command: Initialize cluster."""
-    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
-    init_cluster(implementation)
+    init_cluster()
 
 @click.command(name='start')
-def start_cluster_cmd(ctx):
+def start_cluster_cmd():
     """CLI command: Start cluster."""
-    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
-    start_cluster(implementation)
+    start_cluster()
 
 @click.command(name='status')
-def status_cluster_cmd(ctx):
+def status_cluster_cmd():
     """CLI command: Check status of the cluster."""
-    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
-    status_cluster(implementation)
+    status_cluster()
 
 @click.command(name='stop')
-def stop_cluster_cmd(ctx):
+def stop_cluster_cmd():
     """CLI command: Stop cluster."""
-    implementation = ctx.obj.get('IMPLEMENTATION', 'vanilla')
-    stop_cluster(implementation)
+    stop_cluster()

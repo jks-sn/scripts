@@ -1,5 +1,6 @@
 {
-  "pg_source_dir": "/home/jks/pgs/pg16",
+  "ddl_implementation": "ddl_patch",
+  "pg_source_dir": "/home/jks/pgs/pg_16_ddl_cascade",
   "pg_bin_dir": "/usr/local/pgsql/bin",
   "pg_cluster_dir": "/usr/local/pgsql",
   "nodes": [

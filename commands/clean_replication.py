@@ -7,13 +7,13 @@ from models.config import load_config
 from utils.execute import execute_sql
 from utils.log_handler import logger
 
-def clean_replication(implementation: str):
+def clean_replication():
 	"""
 	Performs a full cleanup of all subscriptions, publications, replication slots,
 	and replication schemas on all servers.
 	"""
 	config = load_config()
-	ddl_replication = get_ddl_implementation(db_type="postgresql", implementation_type=implementation, config=config)
+	ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
 	ddl_replication.cleanup_cluster()
 
 	logger.debug("Replication cleanup completed on all clusters.")

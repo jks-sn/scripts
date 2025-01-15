@@ -60,8 +60,7 @@ def run_as_postgres(command: List[str], suppress_output: bool = True) -> None:
     except subprocess.CalledProcessError as e:
         logger.error(f"Error executing command as postgres: {log_cmd}")
         logger.error(str(e))
-        click.secho(f"Error executing command as postgres: {log_cmd}", fg='red')
-        sys.exit(1)
+        raise
     except Exception as e:
         logger.error(f"Unexpected error executing command as postgres: {e}")
         click.secho(f"Unexpected error executing command as postgres: {e}", fg='red')

@@ -4,15 +4,13 @@ import sys
 import click
 
 
-def run_tests(implementation: str = "vanilla", tags=None):
+def run_tests(tags=None):
     """
     Internal function that runs pytest with the given implementation and optional markers.
     """
     pytest_cmd = [
         "pytest",
         "tests",
-        "--implementation",
-        implementation,
         "-v"
     ]
     if tags:
@@ -25,10 +23,8 @@ def run_tests(implementation: str = "vanilla", tags=None):
 
 @click.command(name="tests")
 @click.option("--tags", "-t", multiple=True, help="Markers (tags) to run (e.g. ddl, cascade_ddl)")
-@click.pass_context
-def tests_cmd(ctx, tags):
+def tests_cmd(tags):
     """
     CLI command that runs pytest-based tests with the chosen DDL implementation.
     """
-    implementation = ctx.obj.get("IMPLEMENTATION", "vanilla")
-    run_tests(implementation=implementation, tags=tags)
+    run_tests(tags=tags)
