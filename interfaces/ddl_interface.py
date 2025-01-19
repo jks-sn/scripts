@@ -19,7 +19,7 @@ class DDLInterface(ABC):
         pass
 
     @abstractmethod
-    def setup_replica(self, node_name: str, source_node_name: str, ddl: bool, cascade: bool) -> None:
+    def setup_replica(self, node_name: str, master_node_name: str, ddl: bool, cascade: bool) -> None:
         pass
 
     @abstractmethod

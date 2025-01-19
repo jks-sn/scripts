@@ -55,7 +55,7 @@ def full_cmd(tags):
     config = load_config()
     ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
 
-    ddl_replication.build_source(clean=False)
+    ddl_replication.build_source(clean=True)
 
     ddl_replication.init_cluster()
 
@@ -64,7 +64,7 @@ def full_cmd(tags):
     from tests.tests import run_tests
     run_tests(tags=tags)
 
-    ddl_replication.stop_cluster()
+    #ddl_replication.stop_cluster()
 
 if __name__ == '__main__':
     cli()

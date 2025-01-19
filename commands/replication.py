@@ -46,11 +46,10 @@ def setup_replication(ddl: bool = False, cascade: bool = False):
     logger.debug("Replication setup has been completed successfully.")
     click.echo("Replication setup has been completed successfully.")
 
-@click.command(name="setup-replication")
-@click.option('--ddl', is_flag=True, help='Enable DDL replication in the publication')
-@click.option('--cascading-replication', is_flag=True, help='Enable cascading replication for Replica 1')
-@click.pass_context
-def setup_replication_cmd(ddl: bool, cascade: bool):
+@click.command(name="setup")
+@click.option('--ddl', ' /-ddl', is_flag=True, default=False, help='Enable DDL replication in the publication')
+@click.option('--cascade', ' /-cascade', is_flag=True, default=False, help='Enable cascading replication for Replica 1')
+def setup_replication_cmd(ddl: bool = False, cascade: bool = False):
     """
     CLI command: Performs a full replication setup (Master, Replica1, and Replica2).
     """

@@ -22,7 +22,6 @@ def setup_replica1(ddl: bool = False, cascade : bool = False):
 @click.command(name="replica1")
 @click.option('--ddl', is_flag=True, help='Enable DDL replication in the publication')
 @click.option('--cascading-replication', is_flag=True, help='Enable cascading replication')
-@click.pass_context
 def setup_replica1_cmd(ddl: bool, cascading_replication: bool):
     """
     CLI command: Sets up Replica 1.

@@ -16,7 +16,7 @@ def build_postgresql(clean: bool = False):
 	"""
 	config = load_config()
 	ddl_impl = get_ddl_implementation(db_type="postgresql", config=config)
-	ddl_impl.build_source()
+	ddl_impl.build_source(clean=clean)
 
 	click.echo("PostgreSQL has been built and installed successfully.")
 

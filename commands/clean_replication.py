@@ -17,6 +17,7 @@ def clean_replication():
 	ddl_replication.cleanup_cluster()
 
 	logger.debug("Replication cleanup completed on all clusters.")
+
 @click.command(name='clean')
 def clean_replication_cmd():
 	"""

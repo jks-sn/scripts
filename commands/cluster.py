@@ -45,7 +45,7 @@ def stop_cluster():
     ddl_replication = get_ddl_implementation(db_type="postgresql", config=config)
     ddl_replication.stop_cluster()
 
-def start_server(cluster_name):
+def start_server(server_name):
     """
     Starts a specific PostgreSQL cluster by name.
     """
@@ -55,22 +55,22 @@ def start_server(cluster_name):
         pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
-        cluster = next((c for c in clusters if c.name == cluster_name), None)
+        cluster = next((c for c in clusters if c.name == server_name), None)
         if not cluster:
-            logger.debug(f"Cluster '{cluster_name}' not found.")
+            logger.debug(f"Cluster '{server_name}' not found.")
             return
 
-        data_dir = os.path.join(pg_cluster_dir, cluster_name)
-        logger.debug(f"Запуск кластера '{cluster_name}'...")
+        data_dir = os.path.join(pg_cluster_dir, server_name)
+        logger.debug(f"Запуск кластера '{server_name}'...")
         pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
         run_as_postgres([pg_ctl_path, '-D', data_dir, '-l', os.path.join(data_dir, 'logfile'), 'start'])
 
-        logger.debug(f"Cluster '{cluster_name}' has been started successfully.")
+        logger.debug(f"Cluster '{server_name}' has been started successfully.")
     except Exception as e:
-        logger.error(f"Error starting cluster '{cluster_name}': {e}")
+        logger.error(f"Error starting cluster '{server_name}': {e}")
         sys.exit(1)
 
-def stop_server(cluster_name):
+def stop_server(server_name):
     """
     Stops a specific PostgreSQL cluster by name.
     """
@@ -80,19 +80,19 @@ def stop_server(cluster_name):
         pg_cluster_dir = config.pg_cluster_dir
         clusters = config.clusters
 
-        cluster = next((c for c in clusters if c.name == cluster_name), None)
+        cluster = next((c for c in clusters if c.name == server_name), None)
         if not cluster:
-            logger.debug(f"Cluster '{cluster_name}' not found.")
+            logger.debug(f"Cluster '{server_name}' not found.")
             return
 
-        data_dir = os.path.join(pg_cluster_dir, cluster_name)
-        logger.debug(f"Stopping server '{cluster_name}'...")
+        data_dir = os.path.join(pg_cluster_dir, server_name)
+        logger.debug(f"Stopping server '{server_name}'...")
         pg_ctl_path = os.path.join(pg_bin_dir, 'pg_ctl')
         run_as_postgres([pg_ctl_path, '-D', data_dir, 'stop', '-m', 'fast'])
 
-        logger.debug(f"Cluster '{cluster_name}' has been stopped successfully.")
+        logger.debug(f"Cluster '{server_name}' has been stopped successfully.")
     except Exception as e:
-        logger.error(f"Error stopping cluster '{cluster_name}': {e}")
+        logger.error(f"Error stopping cluster '{server_name}': {e}")
         sys.exit(1)
 
 @click.command(name='init')

@@ -31,9 +31,9 @@ class Vanilla(BaseDDL):
         super().setup_master(node_name=node_name, ddl=False)
         logger.debug(f"{self.LOG_TAG} Setting up master '{node_name}' with ddl={ddl} finish successfully")
 
-    def setup_replica(self, node_name: str, source_node_name: str, ddl: bool, cascade: bool) -> None:
-        logger.debug(f"{self.LOG_TAG} No preparation needed for subscriber '{node_name}'.")
-        super().setup_replica(node_name=node_name, source_node_name=source_node_name, ddl=False, cascade=cascade)
+    def setup_replica(self, node_name: str, master_node_name: str, ddl: bool, cascade: bool) -> None:
+        logger.debug(f"{self.LOG_TAG} Settuing up replica '{node_name} with master '{master_node_name}'.")
+        super().setup_replica(node_name=node_name, master_node_name=master_node_name, ddl=False, cascade=cascade)
         logger.debug(f"{self.LOG_TAG} Setting up replica '{node_name}' with ddl={False} finish successfully")
 
     def cleanup_cluster(self) -> None:

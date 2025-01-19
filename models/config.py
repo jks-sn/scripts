@@ -15,7 +15,6 @@ class ConnParams(BaseModel):
 
     @field_validator("password", mode="before")
     def password_is_optional(cls, value):
-        """Sets the password to None if it's empty."""
         return value or ""
 
 class Cluster(BaseModel):
@@ -48,15 +47,19 @@ class Config(BaseModel):
             raise ValueError("No subscriber cluster defined in configuration.")
         return subscribers[0]
 
-    def get_cluster_by_name(self, name: str) -> Cluster:
+    def get_node_by_name(self, name: str) -> Cluster:
         nodes = [n for n in self.nodes if n.name == name]
         if not nodes:
             raise ValueError(f"No cluster named '{name}' found in configuration.")
         return nodes[0]
 
-    def get_replication_schema(self, cluster_name: str) -> str:
-        cluster = self.get_cluster_by_name(cluster_name)
-        return cluster.replication_schema
+    def get_replication_schema(self, node_name: str) -> str:
+        node = self.get_node_by_name(node_name)
+        return node.replication_schema
+
+    def get_replication_table(self, node_name: str) -> str:
+        node = self.get_node_by_name(node_name)
+        return node.replication_table
 
 def load_config() -> Config:
     """Load configuration from config.json."""
@@ -76,4 +79,4 @@ def load_config() -> Config:
 def get_nodes_dict() -> dict:
     """Transforme list of nodes to dict with name as key."""
     config = load_config()
-    return {node.name: config.nodes.model_dump() for node in config.nodes}
+    return {node.name: node.model_dump() for node in config.nodes}

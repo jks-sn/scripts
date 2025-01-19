@@ -7,6 +7,7 @@ from utils.log_handler import logger
 
 @pytest.fixture(scope="function")
 def local_setup(request, ddl_implementation):
+
     logger.debug("[local_setup] PREPARE replication before test.")
     clean_replication()
 
@@ -18,10 +19,10 @@ def local_setup(request, ddl_implementation):
     if request.node.get_closest_marker("cascade"):
         cascade = True
 
-    logger.debug("[local_setup] SETUP replication with implementation=")
-    setup_replication(ddl=ddl, cascade=cascade)
+    logger.debug(f"[local_setup] Setting up replication with DDL={ddl}, CASCADE={cascade}.")
+    setup_replication(ddl=ddl, cascade=cascade )
 
     yield
 
-    logger.debug("[local_setup] CLEAN replication after test.")
-    clean_replication()
+    #logger.debug("[local_setup] Cleaning up replication after the test.")
+    # clean_replication()

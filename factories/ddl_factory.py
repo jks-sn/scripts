@@ -7,15 +7,16 @@ from implementations.logical_ddl import LogicalDDLExt
 from models.config import Config
 
 def get_ddl_implementation(db_type: str, config: Config) -> DDLInterface:
-	implementation_type = config.ddl_implementation
+	impl = config.ddl_implementation or "vanilla"
+	impl = impl.lower()
 	if db_type.lower() == "postgresql":
-		if implementation_type == "vanilla" :
+		if impl == "vanilla" :
 			return Vanilla(config)
-		elif implementation_type == "ddl_patch":
+		elif impl == "ddl_patch":
 			return DDLPatch(config)
-		elif implementation_type == "logicalddl_ext":
+		elif impl == "logical_ddl":
 			return LogicalDDLExt(config)
 		else:
-			raise ValueError(f"Unsupported implementation type for PostgreSQL: {implementation_type}")
+			raise ValueError(f"Unsupported implementation type for PostgreSQL: {impl}")
 	else:
 		raise ValueError(f"Unsupported DB type: {db_type}")

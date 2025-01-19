@@ -1,33 +1,29 @@
 # tests/conftest.py
 
 import pytest
+from factories.ddl_factory import get_ddl_implementation
+from models.config import load_config
+from tests.fixtures.cluster_fixtures import *
+from tests.fixtures.global_fixtures import *
+from tests.fixtures.local_fixtures import *
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "ddl: Marker for tests, that need ddl replication")
+    config.addinivalue_line("markers", "dml: Marker for tests, that need dml replication")
     config.addinivalue_line("markers", "cascade: Marker for tests, that need cascade replication")
 
-def pytest_addoption(parser):
+@pytest.fixture(scope="session")
+def config():
     """
-    Adds a custom CLI option to specify the DDL implementation type.
-    Example usage: pytest --implementation=ddl_patch
+    Loads the configuration (e.g. from config.json) once per session.
+    Returns the config object that contains cluster/node info.
     """
-    parser.addoption(
-        "--implementation",
-        action="store",
-        default="vanilla",
-        help="Type of DDL implementation to test (e.g. ddl_patch, vanilla, and others)."
-    )
+    return load_config()
 
 @pytest.fixture(scope="session")
-def ddl_implementation(request):
+def ddl_implementation(request, config):
     """
     Returns the DDL implementation chosen via --implementation CLI option.
     Defaults to 'vanilla' if not specified.
     """
-    config=load_config()
     return get_ddl_implementation("postgresql", config)
-
-from factories.ddl_factory import get_ddl_implementation
-from tests.fixtures.cluster_fixtures import *
-from tests.fixtures.global_fixtures import *
-from tests.fixtures.local_fixtures import *
