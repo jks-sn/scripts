@@ -1,5 +1,5 @@
 {
-  "ddl_implementation": "vanilla",
+  "ddl_implementation": "logical_ddl",
   "pg_source_dir": "/home/jks/pgs/pg16_logical_ddl_ext",
   "pg_bin_dir": "/usr/local/pgsql/bin",
   "pg_cluster_dir": "/usr/local/pgsql",

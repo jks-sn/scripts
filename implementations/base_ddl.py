@@ -31,9 +31,9 @@ class BaseDDL(DDLInterface):
 	#  SQL Helpers
 	#########################
 
-	def _execute(self, node_name: str, sql: str, autocommit: bool = False):
+	def _execute(self, node_name: str, sql: str, autocommit: bool = False, fetch: bool = False):
 		conn_params = self.node_conn[node_name]
-		execute_sql(conn_params, sql, server_name=node_name, autocommit=autocommit)
+		execute_sql(conn_params, sql, server_name=node_name, autocommit=autocommit, fetch=fetch)
 
 
 	#########################

@@ -20,7 +20,7 @@ def local_setup(request, ddl_implementation):
         cascade = True
 
     logger.debug(f"[local_setup] Setting up replication with DDL={ddl}, CASCADE={cascade}.")
-    setup_replication(ddl=ddl, cascade=cascade )
+    setup_replication(ddl=ddl, cascade=cascade)
 
     yield
 
