@@ -24,5 +24,5 @@ def local_setup(request, ddl_implementation):
 
     yield
 
-    #logger.debug("[local_setup] Cleaning up replication after the test.")
-    # clean_replication()
+    logger.debug("[local_setup] Cleaning up replication after the test.")
+    clean_replication()

@@ -116,3 +116,34 @@ def generate_alter_column_type_query(schema_name: str, table_name: str, column_n
         column_name=column_name,
         new_type=new_type
     )
+
+def generate_insert_into_table_query(schema_name: str, table_name: str, data: dict) -> str:
+
+    columns = list(data.keys())
+    values = list(data.values())
+
+    def sql_literal(value):
+        if value is None:
+            return "NULL"
+        elif isinstance(value, (int, float)):
+            return str(value)
+        else:
+            escaped = str(value).replace("'", "''")
+            return f"'{escaped}'"
+
+    columns_sql = ", ".join(columns)
+    values_sql = ", ".join(sql_literal(v) for v in values)
+
+    template = Template("""
+    INSERT INTO {{ schema_name }}.{{ table_name }}
+    ({{ columns_sql }})
+    VALUES
+    ({{ values_sql }});
+    """)
+
+    return template.render(
+        schema_name=schema_name,
+        table_name=table_name,
+        columns_sql=columns_sql,
+        values_sql=values_sql
+    )

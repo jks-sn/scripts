@@ -126,19 +126,18 @@ class LogicalDDLExt(BaseDDL):
 		for node in self.config.nodes:
 			node_name = node.name
 			try:
-				drop_settings_sql = "DELETE FROM logical_ddl.settings;"
-				self._execute(node_name, drop_settings_sql)
-				logger.debug(f"{self.LOG_TAG} Deleted records from logical_ddl.settings on '{node_name}'.")
-
-				drop_publish_table_sql = "DELETE FROM logical_ddl.publish_tablelist;"
-				self._execute(node_name, drop_publish_table_sql)
-				logger.debug(f"{self.LOG_TAG} Deleted records from logical_ddl.publish_tablelist on '{node_name}'.")
-
-				drop_subscribe_table_sql = "DELETE FROM logical_ddl.subscribe_tablelist;"
-				self._execute(node_name, drop_subscribe_table_sql)
-				logger.debug(f"{self.LOG_TAG} Deleted records from logical_ddl.subscribe_tablelist on '{node_name}'.")
+				drop_extension_sql = "DROP EXTENSION IF EXISTS logical_ddl CASCADE";
+				self._execute(node_name, drop_extension_sql)
+				logger.debug(f"{self.LOG_TAG} Deleted extension logical_ddl on '{node_name}'.")
 			except Exception as e:
-				logger.error(f"{self.LOG_TAG} Failed to cleanup logical_ddl.* tables on '{node_name}': {e}")
+				logger.error(f"{self.LOG_TAG} Failed to drop extension logical_ddl on '{node_name}': {e}")
+
+			try:
+				create_extension_sql = "CREATE EXTENSION logical_ddl;";
+				self._execute(node_name, create_extension_sql)
+				logger.debug(f"{self.LOG_TAG} Create extension logical_ddl on '{node_name}'.")
+			except Exception as e:
+				logger.error(f"{self.LOG_TAG} Failed to create extension logical_ddl on '{node_name}': {e}")
 
 		logger.debug(f"{self.LOG_TAG} Cleanup for logical_ddl extension completed on all nodes.")
 

@@ -12,6 +12,9 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "dml: Marker for tests, that need dml replication")
     config.addinivalue_line("markers", "cascade: Marker for tests, that need cascade replication")
 
+def pytest_addoption(parser):
+    parser.addini("replication_wait_time", "Time to wait (in seconds) for replication", default="1")
+
 @pytest.fixture(scope="session")
 def config():
     """
@@ -27,3 +30,8 @@ def ddl_implementation(request, config):
     Defaults to 'vanilla' if not specified.
     """
     return get_ddl_implementation("postgresql", config)
+
+@pytest.fixture(scope="session")
+def replication_wait_time(pytestconfig):
+    """Return the replication wait time (int)."""
+    return int(pytestconfig.getini("replication_wait_time"))

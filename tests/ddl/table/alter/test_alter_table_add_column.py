@@ -6,12 +6,7 @@ import time
 from utils.execute import execute_sql
 
 @pytest.mark.ddl
-def test_alter_table_add_column(local_setup, ddl_implementation, master_node, replica1_node):
-    """
-    Testing ALTER TABLE ADD COLUMN.
-    Assuming that CREATE TABLE might not replicate.
-    Therefore, we manually create the table on both the master and the replica (if necessary).
-    """
+def test_alter_table_add_column(local_setup, ddl_implementation, master_node, replica1_node, replication_wait_time):
     master_name = master_node.name
     replica_name = replica1_node.name
     schema_name = master_node.replication_schema
@@ -23,7 +18,7 @@ def test_alter_table_add_column(local_setup, ddl_implementation, master_node, re
         table_name=table_name
     )
 
-    time.sleep(1)
+    time.sleep(replication_wait_time)
 
     if not ddl_implementation.table_exists(replica_name, schema_name, table_name):
         ddl_implementation.create_table(
@@ -42,7 +37,7 @@ def test_alter_table_add_column(local_setup, ddl_implementation, master_node, re
         default_value=0
     )
 
-    time.sleep(1)
+    time.sleep(replication_wait_time)
 
     columns = ddl_implementation.get_table_columns(replica_name, schema_name, table_name)
     col_names = [col["column_name"] for col in columns]
@@ -50,18 +45,14 @@ def test_alter_table_add_column(local_setup, ddl_implementation, master_node, re
         f"The new column '{new_col_name}' did not appear on the replica"
 
 
-    insert_sql = f"""
-    INSERT INTO {schema_name}.{table_name} (id, data, new_column)
-    VALUES (2, 'Hello from master2', 999);
-    """
-    execute_sql(
-        conn_params=ddl_implementation.node_conn[master_name],
-        sql=insert_sql,
-        server_name=master_name,
-        autocommit=True
+    ddl_implementation.insert_into_table(
+        node_name=master_name,
+        schema_name=schema_name,
+        table_name=table_name,
+        data={"id": 2, "data": "Hello from master2", "new_column": 999}
     )
 
-    time.sleep(5)
+    time.sleep(replication_wait_time)
 
     rows = ddl_implementation.select_all(replica_name, schema_name, table_name)
 
