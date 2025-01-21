@@ -33,8 +33,54 @@ class BaseDDL(DDLInterface):
 
 	def _execute(self, node_name: str, sql: str, autocommit: bool = False, fetch: bool = False):
 		conn_params = self.node_conn[node_name]
-		execute_sql(conn_params, sql, server_name=node_name, autocommit=autocommit, fetch=fetch)
+		return execute_sql(
+			conn_params,
+			sql,
+			server_name=node_name,
+			autocommit=autocommit,
+			fetch=fetch
+		)
 
+
+	def _sql_literal(self, value):
+		if value is None:
+			return "NULL"
+		return str(value)
+
+	#########################
+	#  DML Functions
+	#########################
+
+	def insert_into_table(self, node_name: str, schema_name: str, table_name: str, data: dict):
+		columns = ", ".join(data.keys())
+		values = ", ".join(self._sql_literal(v) for v in data.values())
+		insert_into_table_sql = f"""
+		INSERT INTO {schema_name}.{table_name} ({columns})
+		VALUES ({values});
+		"""
+		self._execute(node_name=node_name, sql=insert_into_table_sql)
+
+	def select_all(self, node_name: str, schema_name: str, table_name: str) -> List[dict]:
+		select_all_sql = f"SELECT * FROM {schema_name}.{table_name};"
+		rows = self._execute(node_name=node_name, sql=select_all_sql, fetch=True)
+		logger.debug(f"[select_all] Raw rows from '{schema_name}.{table_name}' on '{node_name}': {rows}")
+		col_sql = f"""
+			SELECT column_name
+			FROM information_schema.columns
+			WHERE table_schema='{schema_name}' AND table_name='{table_name}'
+			ORDER BY ordinal_position;
+		"""
+		col_rows = self._execute(node_name=node_name, sql=col_sql, fetch=True)
+		col_names = [r[0] for r in col_rows]
+
+		result = []
+		for row in rows:
+			row_dict = {}
+			for col_name, val in zip(col_names, row):
+				row_dict[col_name] = val
+			result.append(row_dict)
+		logger.debug(f"[select_all] Final row_dict list: {result}")
+		return result
 
 	#########################
 	#  Publication / Subscription
@@ -250,6 +296,8 @@ class BaseDDL(DDLInterface):
 					conf.write("max_wal_senders = 10\n")
 					conf.write("max_replication_slots = 10\n")
 					conf.write("logging_collector = on\n")
+					conf.write("log_min_messages = notice\n")
+					conf.write("client_min_messages = notice\n")
 
 				logger.debug(f"{self.LOG_TAG} Node {node_name} have been initialized successfully.")
 

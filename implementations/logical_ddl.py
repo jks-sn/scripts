@@ -89,6 +89,14 @@ class LogicalDDLExt(BaseDDL):
 		logger.debug(f"{self.LOG_TAG} Settuing up replica '{node_name} with master '{master_node_name}'.")
 		replica = self.config.get_node_by_name(node_name)
 
+		set_subscriber_sql = f"""
+			INSERT INTO logical_ddl.settings (publish, source)
+			VALUES (false, '{master_node_name}')
+		"""
+		self._execute(node_name, set_subscriber_sql)
+		logger.debug(f"{self.LOG_TAG} Node '{node_name}' is set as subscriber for source='{master_node_name}'.")
+
+
 		set_replication_role_sql = """
 			SET session_replication_role = 'replica';
 		"""
@@ -192,7 +200,7 @@ class LogicalDDLExt(BaseDDL):
 				refresh_subscription_sql = f"""
 				ALTER SUBSCRIPTION sub_{node_name} REFRESH PUBLICATION;
 				"""
-				self._execute(node_name=node_name, sql=refresh_subscription_sql)
+				self._execute(node_name=node_name, sql=refresh_subscription_sql, autocommit=True)
 				logger.debug(f"{self.LOG_TAG} Refreshed subscription 'sub_{node_name}' after adding '{schema_name}.{table_name}' to publication.")
 			else:
 		   		logger.warning(f"{self.LOG_TAG} Subscription 'sub_{node_name}' does not exist. Skipping REFRESH PUBLICATION.")

@@ -49,17 +49,19 @@ def test_alter_table_add_column(local_setup, ddl_implementation, master_node, re
     assert new_col_name in col_names, \
         f"The new column '{new_col_name}' did not appear on the replica"
 
+
     insert_sql = f"""
     INSERT INTO {schema_name}.{table_name} (id, data, new_column)
     VALUES (2, 'Hello from master2', 999);
     """
     execute_sql(
-        conn_params=master_node.conn_params,
+        conn_params=ddl_implementation.node_conn[master_name],
         sql=insert_sql,
-        server_name=master_name
+        server_name=master_name,
+        autocommit=True
     )
 
-    time.sleep(1)
+    time.sleep(5)
 
     rows = ddl_implementation.select_all(replica_name, schema_name, table_name)
 

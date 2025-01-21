@@ -4,7 +4,6 @@ import json
 import click
 from factories.ddl_factory import get_ddl_implementation
 from models.config import load_config
-from utils.execute import execute_sql
 from utils.log_handler import logger
 
 def clean_replication():
