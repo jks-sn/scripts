@@ -64,7 +64,7 @@ def full_cmd(tags):
     from tests.tests import run_tests
     run_tests(tags=tags)
 
-    #ddl_replication.stop_cluster()
+    ddl_replication.stop_cluster()
 
 if __name__ == '__main__':
     cli()

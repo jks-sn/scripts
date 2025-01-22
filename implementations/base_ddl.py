@@ -12,13 +12,13 @@ from sql.publication import generate_create_publication_query, generate_drop_pub
 from sql.schema import generate_create_schema_query, generate_drop_schema_query
 from sql.subscription import generate_create_subscription_query, generate_drop_subscription_query
 from sql.table import (	generate_add_column_query,
-                    	generate_alter_column_type_query,
-                    	generate_create_table_query,
-                    	generate_drop_column_query,
-                    	generate_drop_table_query,
-                     	generate_insert_into_table_query,
-                      	generate_rename_column_query,
-                       	generate_rename_table_query)
+						generate_alter_column_type_query,
+						generate_create_table_query,
+						generate_drop_column_query,
+						generate_drop_table_query,
+					 	generate_insert_into_table_query,
+					  	generate_rename_column_query,
+					   	generate_rename_table_query)
 from utils.execute import execute_sql, run_as_postgres
 from utils.log_handler import logger
 from typing import List, Dict
@@ -167,13 +167,14 @@ class BaseDDL(DDLInterface):
 	#########################
 
 	def table_exists(self, node_name: str, schema_name: str, table_name: str) -> bool:
-		sql = f"""
+		table_exists_sql = f"""
 		SELECT EXISTS (
 			SELECT 1 FROM information_schema.tables
 			WHERE table_schema='{schema_name}' AND table_name='{table_name}'
 		);
 		"""
-		results = execute_sql(self.node_conn[node_name], sql, node_name)
+		results = self._execute(node_name, table_exists_sql, fetch=True)
+		logger.debug(f"{self.LOG_TAG} table_exists result raw: {results}")
 		exists = bool(results) and results[0][0]
 		logger.debug(f"{self.LOG_TAG} Table '{schema_name}.{table_name}' exists on '{node_name}': {exists}")
 		return exists
