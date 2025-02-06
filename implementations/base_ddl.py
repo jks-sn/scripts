@@ -19,6 +19,7 @@ from sql.table import (	generate_add_column_query,
 					 	generate_insert_into_table_query,
 					  	generate_rename_column_query,
 					   	generate_rename_table_query)
+from sql.user import generate_create_user_query
 from utils.execute import execute_sql, run_as_postgres
 from utils.log_handler import logger
 from typing import List, Dict
@@ -62,6 +63,18 @@ class BaseDDL(DDLInterface):
 		insert_sql = generate_insert_into_table_query(schema_name, table_name, data)
 		self._execute(node_name=node_name, sql=insert_sql)
 		logger.debug(f"{self.LOG_TAG} Inserted row into '{schema_name}.{table_name}' on '{node_name}': {data}")
+
+	#########################
+	#  User
+	#########################
+	def create_replication_user(self, node_name: str, username: str = 'replication', password: str = 'replication', superuser: bool = True) -> None:
+		conn_params = self.node_conn[node_name].copy()
+		conn_params['user'] = 'postgres'
+		conn_params['password'] = 'postgres'
+
+		sql = generate_create_user_query(username=username, password=password, superuser=superuser)
+		execute_sql(conn_params, sql, server_name=node_name, autocommit=True)
+		logger.debug(f"{self.LOG_TAG} Replication user '{username}' created on node '{node_name}'.")
 
 	#########################
 	#  Publication / Subscription
@@ -304,6 +317,15 @@ class BaseDDL(DDLInterface):
 					conf.write("client_min_messages = notice\n")
 
 				logger.debug(f"{self.LOG_TAG} Node {node_name} have been initialized successfully.")
+
+				logger.debug(f"{self.LOG_TAG} Starting server '{node_name}' to create replication user.")
+
+				self.start_server(node_name)
+				self.create_replication_user(node_name)
+
+				logger.debug(f"{self.LOG_TAG} Stopping server '{node_name}' after creating replication user.")
+
+				self.stop_server(node_name)
 
 			logger.debug(f"{self.LOG_TAG} cluster have been initialized successfully.")
 

@@ -1,5 +1,6 @@
 # factories/ddl_factory.py
 
+from implementations.pg_easy_replicate import PG_Easy_Replicate
 from interfaces.ddl_interface import DDLInterface
 from implementations.vanilla import Vanilla
 from implementations.ddl_patch import DDLPatch
@@ -16,6 +17,8 @@ def get_ddl_implementation(db_type: str, config: Config) -> DDLInterface:
 			return DDLPatch(config)
 		elif impl == "logical_ddl":
 			return LogicalDDLExt(config)
+		elif impl == "pg_easy_replicate":
+			return PG_Easy_Replicate(config)
 		else:
 			raise ValueError(f"Unsupported implementation type for PostgreSQL: {impl}")
 	else:

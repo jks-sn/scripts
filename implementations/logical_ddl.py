@@ -1,4 +1,4 @@
-# implementations/logical_ddl_ext.py
+# implementations/logical_ddl.py
 
 import os
 from implementations.base_ddl import BaseDDL

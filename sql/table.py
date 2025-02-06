@@ -1,4 +1,4 @@
-# utils/table.py
+# sql/table.py
 
 from jinja2 import Template
 
