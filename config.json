@@ -7,6 +7,7 @@
     {
       "name": "master",
       "role": "master",
+      "replication_user": "replication",
       "replication_schema": "replication",
       "replication_table": "table1",
       "data_dir": "/usr/local/pgsql/master",
@@ -15,13 +16,14 @@
         "host": "localhost",
         "dbname": "postgres",
         "port": 5432,
-        "user": "postgres",
-        "password": ""
+        "user": "replication",
+        "password": "replication"
       }
     },
     {
       "name": "replica1",
       "role": "replica",
+      "replication_user": "replication",
       "replication_schema": "replication",
       "replication_table": "table1",
       "port": 5433,
@@ -29,13 +31,14 @@
         "host": "localhost",
         "dbname": "postgres",
         "port": 5433,
-        "user": "postgres",
-        "password": ""
+        "user": "replication",
+        "password": "replication"
       }
     },
     {
       "name": "replica2",
       "role": "replica",
+      "replication_user": "replication",
       "replication_schema": "replication",
       "replication_table": "table1",
       "port": 5434,
@@ -43,8 +46,8 @@
         "host": "localhost",
         "port": 5434,
         "dbname": "postgres",
-        "user": "postgres",
-        "password": ""
+        "user": "replication",
+        "password": "replication"
       }
     }
   ]

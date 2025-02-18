@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 import click
+import psycopg2
 from interfaces.ddl_interface import DDLInterface
 from sql.publication import generate_create_publication_query, generate_drop_publication_query
 from sql.schema import generate_create_schema_query, generate_drop_schema_query
@@ -67,13 +68,16 @@ class BaseDDL(DDLInterface):
 	#########################
 	#  User
 	#########################
-	def create_replication_user(self, node_name: str, username: str = 'replication', password: str = 'replication', superuser: bool = True) -> None:
-		conn_params = self.node_conn[node_name].copy()
-		conn_params['user'] = 'postgres'
-		conn_params['password'] = 'postgres'
+	def create_replication_user(self, conn_params: Dict, node_name: str, username: str = 'replication', password: str = 'replication', superuser: bool = True) -> None:
 
 		sql = generate_create_user_query(username=username, password=password, superuser=superuser)
-		execute_sql(conn_params, sql, server_name=node_name, autocommit=True)
+		try:
+			execute_sql(conn_params, sql, server_name=node_name, autocommit=True)
+		except psycopg2.Error as e:
+			if 'already exists' in str(e):
+				pass
+			else:
+				raise
 		logger.debug(f"{self.LOG_TAG} Replication user '{username}' created on node '{node_name}'.")
 
 	#########################
@@ -320,8 +324,15 @@ class BaseDDL(DDLInterface):
 
 				logger.debug(f"{self.LOG_TAG} Starting server '{node_name}' to create replication user.")
 
+				conn_params_postgres = self.node_conn[node_name].copy()
+				conn_params_postgres["user"] = "postgres"
+				conn_params_postgres["password"] = "postgres"
+
 				self.start_server(node_name)
-				self.create_replication_user(node_name)
+				# create_plpgsql_sql = "CREATE EXTENSION IF NOT EXISTS plpgsql;"
+				# execute_sql(conn_params=conn_params_postgres, sql=create_plpgsql_sql, server_name=node_name)
+
+				self.create_replication_user(conn_params=conn_params_postgres, node_name=node_name, username = node.replication_user)
 
 				logger.debug(f"{self.LOG_TAG} Stopping server '{node_name}' after creating replication user.")
 

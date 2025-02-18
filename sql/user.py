@@ -4,18 +4,12 @@ from jinja2 import Template
 
 def generate_create_user_query(username: str, password: str = '', superuser: bool = False) -> str:
     template = Template("""
-    DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '{{ username }}') THEN
-            CREATE ROLE {{ username }} WITH LOGIN PASSWORD '{{ password }}'
-            {% if superuser %}
-                SUPERUSER;
-            {% else %}
-                NOSUPERUSER;
-            {% endif %}
-        END IF;
-    END
-    $$;
+    CREATE ROLE {{ username }} WITH LOGIN PASSWORD '{{ password }}'
+    {% if superuser %}
+        SUPERUSER;
+    {% else %}
+        NOSUPERUSER;
+    {% endif %}
     """)
     return template.render(username=username, password=password, superuser=superuser)
 

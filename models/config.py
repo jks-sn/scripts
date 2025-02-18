@@ -21,6 +21,7 @@ class Cluster(BaseModel):
     name: str = Field(..., json_schema_extra={"description": "Node name"})
     role: str = Field(..., json_schema_extra={"description": "Node role"})
     port: int = Field(default=5432, json_schema_extra={"description": "Server port used also for postgresql.conf"})
+    replication_user: str = Field(default="replication", json_schema_extra={"description": "User, user for replication"})
     replication_schema: str = Field(default="replication", json_schema_extra={"description": "Schema used for replication"})
     replication_table: str = Field(default="table1", json_schema_extra={"description": "Table used for replication"})
     conn_params: ConnParams = Field(..., json_schema_extra={"description": "Parameters for connecting to this node"})
