@@ -7,6 +7,14 @@ from utils.execute import execute_sql
 
 @pytest.mark.ddl
 def test_alter_table_add_column(local_setup, ddl_implementation, master_node, replica1_node, replication_wait_time):
+    """
+    1) Create a table (`id SERIAL, data TEXT`).
+    2) Execute `ALTER TABLE ADD COLUMN new_column INTEGER DEFAULT 0` on the master.
+    3) Verify that the new column appears on the replica.
+    4) Insert a row into the master, including a value for `new_column`.
+    5) Verify that the inserted row is correctly replicated, including the `new_column` value.
+    """
+
     master_name = master_node.name
     replica_name = replica1_node.name
     schema_name = master_node.replication_schema

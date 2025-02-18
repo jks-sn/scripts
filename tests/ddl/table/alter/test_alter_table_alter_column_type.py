@@ -6,6 +6,13 @@ import time
 
 @pytest.mark.ddl
 def test_alter_table_alter_column_type(local_setup, ddl_implementation, master_node, replica1_node, replication_wait_time):
+    """
+    1) Create a table (`id SERIAL PRIMARY KEY, col_to_alter TEXT`).
+    2) Execute `ALTER TABLE ALTER COLUMN col_to_alter TYPE VARCHAR(255)` on the master.
+    3) Verify that the column type change is replicated.
+    4) Check that the column exists on the replica with the expected type (`VARCHAR(255)`).
+    """
+
     master_name = master_node.name
     replica_name = replica1_node.name
     schema_name = master_node.replication_schema

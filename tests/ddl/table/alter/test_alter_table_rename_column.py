@@ -5,6 +5,13 @@ import time
 
 @pytest.mark.ddl
 def test_alter_table_rename_column(local_setup, ddl_implementation, master_node, replica1_node, replication_wait_time):
+    """
+    1) Create a table (`id SERIAL PRIMARY KEY, col_old TEXT`).
+    2) Execute `ALTER TABLE RENAME COLUMN col_old TO col_new` on the master.
+    3) Verify that the column is renamed on the replica.
+    4) Ensure that `col_new` exists and `col_old` no longer exists on the replica.
+    """
+
     master_name = master_node.name
     replica_name = replica1_node.name
     schema_name = master_node.replication_schema

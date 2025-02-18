@@ -5,6 +5,13 @@ import time
 
 @pytest.mark.ddl
 def test_alter_table_rename_table(local_setup, ddl_implementation, master_node, replica1_node, replication_wait_time):
+    """
+    1) Create a table (`test_alter_table_rename_table`).
+    2) Execute `ALTER TABLE RENAME TO test_alter_table_rename_table_new` on the master.
+    3) Verify that the old table name no longer exists on the replica.
+    4) Ensure that the new table name appears on the replica.
+    """
+
     master_name = master_node.name
     replica_name = replica1_node.name
     schema_name = master_node.replication_schema

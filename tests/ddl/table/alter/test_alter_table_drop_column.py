@@ -5,6 +5,13 @@ import time
 
 @pytest.mark.ddl
 def test_alter_table_drop_column(local_setup, ddl_implementation, master_node, replica1_node, replication_wait_time):
+    """
+    1) Create a table (`id SERIAL PRIMARY KEY, drop_me TEXT`).
+    2) Execute `ALTER TABLE DROP COLUMN drop_me` on the master.
+    3) Verify that the column is removed on the replica.
+    4) Check that the column `drop_me` no longer exists in the replica's schema.
+    """
+
     master_name = master_node.name
     replica_name = replica1_node.name
     schema_name = master_node.replication_schema
