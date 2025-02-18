@@ -1,6 +1,6 @@
 # factories/ddl_factory.py
 
-from implementations.pg_ddl_deploy import PG_DDL_Deploy
+from implementations.pgl_ddl_deploy import PG_DDL_Deploy
 from implementations.pg_easy_replicate import PG_Easy_Replicate
 from interfaces.ddl_interface import DDLInterface
 from implementations.vanilla import Vanilla
