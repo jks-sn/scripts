@@ -9,6 +9,7 @@ import sys
 import click
 import psycopg2
 from interfaces.ddl_interface import DDLInterface
+from sql.database import generate_create_database_query, generate_drop_database_query
 from sql.publication import generate_create_publication_query, generate_drop_publication_query
 from sql.schema import generate_create_schema_query, generate_drop_schema_query
 from sql.subscription import generate_create_subscription_query, generate_drop_subscription_query
@@ -64,6 +65,20 @@ class BaseDDL(DDLInterface):
 		insert_sql = generate_insert_into_table_query(schema_name, table_name, data)
 		self._execute(node_name=node_name, sql=insert_sql)
 		logger.debug(f"{self.LOG_TAG} Inserted row into '{schema_name}.{table_name}' on '{node_name}': {data}")
+
+	#########################
+	#  Database
+	#########################
+
+	def create_db(self, node_name: str, owner: str = None, db_name: str = "mydb") -> None:
+		sql = generate_create_database_query(dbname=db_name, owner=owner)
+		self._execute(node_name, sql)
+		logger.debug(f"{self.LOG_TAG} Created database {db_name} on node '{node_name}', owner={owner}.")
+
+	def drop_db(self, node_name: str, db_name: str) -> None:
+		sql = generate_drop_database_query(dbname=db_name)
+		self._execute(node_name, sql)
+		logger.debug(f"{self.LOG_TAG} Dropped database {db_name} on node '{node_name}'.")
 
 	#########################
 	#  User
@@ -292,6 +307,7 @@ class BaseDDL(DDLInterface):
 		gid = grp.getgrnam("postgres").gr_gid
 		for node in self.config.nodes:
 			node_name = node.name
+			node_replication_user = node.replication_user
 			data_dir = os.path.join(pg_cluster_dir, node_name)
 
 			self.ensure_server_stopped(node_name)
@@ -333,6 +349,8 @@ class BaseDDL(DDLInterface):
 				# execute_sql(conn_params=conn_params_postgres, sql=create_plpgsql_sql, server_name=node_name)
 
 				self.create_replication_user(conn_params=conn_params_postgres, node_name=node_name, username = node.replication_user)
+
+				self.create_db(node_name=node_name, owner = node_replication_user, db_name="mydb")
 
 				logger.debug(f"{self.LOG_TAG} Stopping server '{node_name}' after creating replication user.")
 
